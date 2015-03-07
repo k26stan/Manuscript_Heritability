@@ -10,7 +10,7 @@ library( gplots )
 ###########################################################
 
 ## Set Date
-DATE <- "20150302"
+DATE <- "20150304"
 
 ## Set Paths to Data and to Save
 PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
@@ -84,7 +84,6 @@ TAB$IID <- as.character( TAB$IID )
  # % Improvement
  # Trajectory
  # Variance after treatment
-
 
 ## Set number of patients
 Samps <- as.character( unique( TAB$IID ) )
@@ -205,6 +204,8 @@ plot( D.MN.1.diff, D.MN.4.stat )
  # Use lmList for individual Beta Values
 D.MN.5.B <- D.MN.5.t <- D.MN.5.B.int <- D.MN.5.t.int <- array( , c(N.samps,6) )
 colnames(D.MN.5.B) <- colnames(D.MN.5.t) <- colnames(D.MN.5.B.int) <- colnames(D.MN.5.t.int) <- names(PH_COLS)
+D.MN.9.res <- array( , c(N.samps,6) )
+colnames(D.MN.9.res) <- names(PH_COLS)
 for ( p in 1:length(PH_COLS) ) {
 	col <- PH_COLS[p]
 	pheno <- names(PH_COLS)[p]
@@ -216,6 +217,7 @@ for ( p in 1:length(PH_COLS) ) {
 	D.MN.5.t.int[,p] <- summary(MOD)$coefficients[,"t value",1]
 	D.MN.5.B[,p] <- summary(MOD)$coefficients[,"Estimate",2]
 	D.MN.5.t[,p] <- summary(MOD)$coefficients[,"t value",2]
+	D.MN.9.res[,p] <- sapply( lapply( MOD, function(x) sd(resid(x)) ), "[",1)
 }
 length(which(is.na(D.MN.5.B)))
 
@@ -249,40 +251,10 @@ TAB.6.lCRP[TEMP,]
 ## Trajectory: Beta Value for WK in Linear Model
  # Use lmList for individual Beta Values
 TAB.1 <- TAB[ which(TAB$DRUG==1), ]
-D.MN.7.B.wk <- D.MN.7.t.wk <- D.MN.7.B <- D.MN.7.t <- D.MN.7.B.int <- D.MN.7.t.int <- array( , c(N.samps,6) )
-colnames(D.MN.7.B.wk) <- colnames(D.MN.7.t.wk) <- colnames(D.MN.7.B) <- colnames(D.MN.7.t) <- colnames(D.MN.7.B.int) <- colnames(D.MN.7.t.int) <- names(PH_COLS)
-for ( p in 1:length(PH_COLS) ) {
-	col <- PH_COLS[p]
-	pheno <- names(PH_COLS)[p]
-	TEMP_TAB <- TAB[ , c("IID","DRUG","WK",pheno) ]
-	colnames(TEMP_TAB)[4] <- "Pheno"
-	TEMP_TAB <- TEMP_TAB[ which(!is.na(TEMP_TAB[,"Pheno"])) ,]
-	MOD <- lmList( Pheno ~ DRUG+WK | IID, data=TEMP_TAB )
-	D.MN.7.B.int[,p] <- summary(MOD)$coefficients[,"Estimate",1]
-	D.MN.7.t.int[,p] <- summary(MOD)$coefficients[,"t value",1]
-	D.MN.7.B[,p] <- summary(MOD)$coefficients[,"Estimate",2]
-	D.MN.7.t[,p] <- summary(MOD)$coefficients[,"t value",2]
-	D.MN.7.B.wk[,p] <- summary(MOD)$coefficients[,"Estimate",3]
-	D.MN.7.t.wk[,p] <- summary(MOD)$coefficients[,"t value",3]
-}
-length(which(is.na(D.MN.7.B)))
-length(which(is.na(D.MN.7.B.wk)))
-par(mfrow=c(2,3))
-for ( col in 1:6 ) { hist( D.MN.7.B.wk[,col] ) }
-TEMP <- data.frame( D.MN.7.B, D.MN.7.B.wk, D.MN.7.B.int )
-# pairs( data.frame( D.MN.7.B, D.MN.7.B.wk, D.MN.7.B.int ) )
-# COLS.list <- c("black","slateblue3","steelblue2","springgreen2","gold2","chocolate2","firebrick1")
-# COLS <- colorRampPalette(COLS.list)(100)
-# BRKS <- seq( -1,1,length.out=101 )
-# CORR.temp <- cor( TEMP, method="pearson" )
-# heatmap.2( CORR.temp, col=COLS, trace="none", breaks=BRKS, scale="none" )
-
-###########################################################
-## Trajectory: Beta Value for WK in Linear Model
- # Use lmList for individual Beta Values
-TAB.1 <- TAB[ which(TAB$DRUG==1), ]
-D.MN.7.B.wk <- D.MN.7.t.wk <- D.MN.7.B <- D.MN.7.t <- D.MN.7.B.int <- D.MN.7.t.int <- array( , c(N.samps,6) )
-colnames(D.MN.7.B.wk) <- colnames(D.MN.7.t.wk) <- colnames(D.MN.7.B) <- colnames(D.MN.7.t) <- colnames(D.MN.7.B.int) <- colnames(D.MN.7.t.int) <- names(PH_COLS)
+D.MN.7.B.wk <- D.MN.7.B.int <- array( , c(N.samps,6) )
+colnames(D.MN.7.B.wk) <- colnames(D.MN.7.B.int) <- names(PH_COLS)
+D.MN.8.res <- array( , c(N.samps,6) )
+colnames(D.MN.8.res) <- names(PH_COLS)
 for ( p in 1:length(PH_COLS) ) {
 	col <- PH_COLS[p]
 	pheno <- names(PH_COLS)[p]
@@ -291,11 +263,8 @@ for ( p in 1:length(PH_COLS) ) {
 	TEMP_TAB.1 <- TEMP_TAB.1[ which(!is.na(TEMP_TAB.1[,"Pheno"])) ,]
 	MOD <- lmList( Pheno ~ WK | IID, data=TEMP_TAB.1 )
 	D.MN.7.B.int[,p] <- sapply( lapply( MOD, function(x) coef(x)[1] ), "[",1)# summary(MOD)$coefficients[,"Estimate",1]
-	# D.MN.7.t.int[,p] <- summary(MOD)$coefficients[,"t value",1]
-	# D.MN.7.B[,p] <- summary(MOD)$coefficients[,"Estimate",2]
-	# D.MN.7.t[,p] <- summary(MOD)$coefficients[,"t value",2]
 	D.MN.7.B.wk[,p] <- sapply( lapply( MOD, function(x) coef(x)[2] ), "[",1)
-	# D.MN.7.t.wk[,p] <- summary(MOD)$coefficients[,"t value",2]
+	D.MN.8.res[,p] <- sapply( lapply( MOD, function(x) sd(resid(x)) ), "[",1)
 }
 length(which(is.na(D.MN.7.B.int)))
 length(which(is.na(D.MN.7.B.wk)))
@@ -306,29 +275,39 @@ TEMP <- data.frame( D.MN.7.B, D.MN.7.B.wk, D.MN.7.B.int )
 
 
 
-TEMP <- data.frame( D.MN.7.B, D.MN.5.B )
-
-
-
-
 
 par(mfrow=c(2,3))
 for ( col in 1:ncol(D.MN.1.diff) ) {
 	DATA <- D.MN.6.perc
 	BRKS <- seq( -1, max(DATA[,col])+.1, .1 )
 	XLIM <- c( -1, min(max(BRKS),5) )
-	hist( D.MN.6.perc[,col], breaks=BRKS, xlim=XLIM, main=colnames(DATA)[col] )
+	hist( DATA[,col], breaks=BRKS, xlim=XLIM, main=colnames(DATA)[col] )
+}
+par(mfrow=c(2,3))
+for ( col in 1:ncol(D.MN.1.diff) ) {
+	DATA <-  D.MN.8.res
+	# BRKS <- seq( -1, max(DATA[,col])+.1, .1 )
+	# XLIM <- c( -1, min(max(BRKS),5) )
+	# hist( D.MN.8.res[,col], breaks=BRKS, xlim=XLIM, main=colnames(DATA)[col] )
+	hist( DATA[,col], main=colnames(DATA)[col] )
 }
 
 
 
+############################################
+## PLOT ##
 
-
-FRAME <- data.frame(D.MN.1.diff,D.MN.2.diff,D.MN.3.diff,D.MN.4.stat,D.MN.5.B,D.MN.6.perc)
+## Heatmap of Correlation Amongst Phenotypes
+FRAME <- data.frame(D.MN.1.diff,D.MN.2.diff,D.MN.3.diff,D.MN.4.stat,D.MN.5.B,D.MN.6.perc,D.MN.7.B.wk,D.MN.8.res,D.MN.9.res)
+DERIV_NAMES <- c("MNw","MNwo","MNa","MNcd","Bdr","PRC","Bwk","VARdr","VARwk") ; N.Deriv <- length(DERIV_NAMES)
+PHENO_NAMES <- names(PH_COLS) ; N.Pheno <- length(PHENO_NAMES)
+FRAME_NAMES <- paste( rep(DERIV_NAMES,rep(N.Pheno,N.Deriv)), rep(PHENO_NAMES,N.Deriv), sep="_" )
+colnames(FRAME) <- FRAME_NAMES
 CORR <- cor( FRAME, use="pairwise.complete.obs", method="spearman" )
 COLS.list <- c("black","slateblue3","steelblue2","springgreen2","gold2","chocolate2","firebrick1")
+COLS.list <- c("gold2","chocolate2","firebrick1","black","slateblue3","steelblue2","springgreen2")
 COLS <- colorRampPalette(COLS.list)(100)
-BRKS <- seq( 0,1,length.out=101 )
+BRKS <- seq( -1,1,length.out=101 )
 heatmap.2( CORR, col=COLS, trace="none", breaks=BRKS, scale="none" )
 
 for ( col in 1:ncol(D.MN.1.diff) ) {
@@ -336,7 +315,6 @@ for ( col in 1:ncol(D.MN.1.diff) ) {
 	pairs( data.frame( D.MN.1.diff[,col],D.MN.2.diff[,col],D.MN.3.diff[,col],D.MN.4.stat[,col],D.MN.5.B[,col]) )
 }
 
-pairs( data.frame(D.MN.1.diff,D.MN.2.diff,D.MN.3.diff,D.MN.4.stat,D.MN.5.B) )
 
 pairs( D.MN.4.stat )
 

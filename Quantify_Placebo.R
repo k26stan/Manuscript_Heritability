@@ -9,7 +9,7 @@ library( nlme )
 ###########################################################
 
 ## Set Date
-DATE <- "20150302"
+DATE <- "20150304"
 
 ## Set Paths to Data and to Save
 PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
@@ -155,13 +155,21 @@ lapply( COEFS, function(x) x[3,1]/x[2,1] )
 
 ## Compile Beta Ratios & P-Values
  # Beta
-LM.B <- sapply( lapply( LM$Coefs, function(x) x[2,1] ), "[", 1 )
-LME.B <- sapply( lapply( LME$Coefs, function(x) x[2,1] ), "[", 1 )
-LM.DP.B <- sapply( lapply( LM.DP$Coefs, function(x) x[2,1] ), "[", 1 )
-LME.DP.B <- sapply( lapply( LME.DP$Coefs, function(x) x[2,1] ), "[", 1 )
-LM.DP.B.dr <- sapply( lapply( LM.DP$Coefs, function(x) x[3,1] ), "[", 1 )
-LME.DP.B.dr <- sapply( lapply( LME.DP$Coefs, function(x) x[3,1] ), "[", 1 )
+LM.B <- sapply( lapply( LM$Coefs, function(x) x["PLAC",1] ), "[", 1 )
+LME.B <- sapply( lapply( LME$Coefs, function(x) x["PLAC",1] ), "[", 1 )
+LM.DP.B <- sapply( lapply( LM.DP$Coefs, function(x) x["PLAC",1] ), "[", 1 )
+LME.DP.B <- sapply( lapply( LME.DP$Coefs, function(x) x["PLAC",1] ), "[", 1 )
+LM.DP.B.dr <- sapply( lapply( LM.DP$Coefs, function(x) x["DRUG",1] ), "[", 1 )
+LME.DP.B.dr <- sapply( lapply( LME.DP$Coefs, function(x) x["DRUG",1] ), "[", 1 )
 Bs <- rbind( LM.B, LME.B, LM.DP.B, LME.DP.B, LM.DP.B.dr, LME.DP.B.dr )
+ # Confidence Intervals (for B)
+LM.conf <- sapply( lapply( LM$Mods, function(x) confint(x)["PLAC",] ), "[", c(1,2) )
+LME.conf <- sapply( lapply( LME$Mods, function(x) intervals(x)$fixed["PLAC",c(1,3)] ), "[", c(1,2) )
+LM.DP.conf <- sapply( lapply( LM.DP$Mods, function(x) confint(x)["PLAC",] ), "[", c(1,2) )
+LME.DP.conf <- sapply( lapply( LME.DP$Mods, function(x) intervals(x)$fixed["PLAC",c(1,3)] ), "[", c(1,2) )
+LM.DP.conf.dr <- sapply( lapply( LM.DP$Mods, function(x) confint(x)["DRUG",] ), "[", c(1,2) )
+LME.DP.conf.dr <- sapply( lapply( LME.DP$Mods, function(x) intervals(x)$fixed["DRUG",c(1,3)] ), "[", c(1,2) )
+Confs <- rbind( LM.conf, LME.conf, LM.DP.conf, LME.DP.conf, LM.DP.conf.dr, LME.DP.conf.dr )
  # Beta Ratios
 LM.Ratio <- sapply( lapply( LM$Coefs, function(x) x[2,1]/x[1,1] ), "[", 1 )
 LME.Ratio <- sapply( lapply( LME$Coefs, function(x) x[2,1]/x[1,1] ), "[", 1 )
@@ -170,23 +178,33 @@ LME.DP.Ratio <- sapply( lapply( LME.DP$Coefs, function(x) x[2,1]/x[3,1] ), "[", 
 Ratios <- rbind( LM.Ratio, LME.Ratio, LM.DP.Ratio, LME.DP.Ratio )
  # P-Values
 Pvals <- rbind( LM$Ps, LME$Ps, LM.DP$Ps, LME.DP$Ps )
+Stars <- array(, dim(Pvals) )
+Stars[ which(Pvals<.05) ] <- "*"
+Stars[ which(Pvals<.01) ] <- "**"
+Stars[ which(Pvals<.001) ] <- "***"
 
 ## Plot Beta values/ratios for each Phenotype
 COLS <- c("tomato2","slateblue3")
 png( paste(PathToSave,"Plac_Effect_Beta.png",sep="/"), height=1200,width=1600, pointsize=26 )
 par(mfrow=c(2,1))
 # B for PLAC beta & Intercept
-YLIM <- c( 1.2*min(Bs[1:2,]), 0 )
+YLIM <- c( 1.5*min(Bs[1:2,]), 0 )
 barplot( Bs[1:2,], col=COLS, beside=T, ylim=YLIM, xlab="Phenotype",ylab="Beta",main="Placebo Effect (Beta Value)" )
-abline( h=seq(-5,0,.5), lty=2, col="grey50" )
+abline( h=seq(-5,0,.2), lty=2, col="grey50" )
 barplot( Bs[1:2,], col=COLS, beside=T, add=T )
-legend( "bottomright", fill=COLS, legend=c("LR: Plac","LMM: Plac","LR: Drug","LMM: Drug"), ncol=2 )
+X.arrow <- rep( c(1.5,2.5), rep(6,2) ) + rep( seq(0,15,3),2 )
+arrows( X.arrow, c(Confs[1,],Confs[3,]), X.arrow, c(Confs[2,],Confs[4,]), code=3,angle=90 )
+text( X.arrow, c(Confs[1,],Confs[3,])-.1, label=rep("**",length(X.arrow)) )
 # B for PLAC beta & DRUG beta
 COLS <- c("tomato2","slateblue3","chartreuse2","deepskyblue2")
-YLIM <- c( 1.2*min(Bs[3:6,]), 0 )
-barplot( Bs[3:6,], col=COLS, beside=T, ylim=YLIM, xlab="Phenotype",ylab="Beta",main="Placebo vs Drug Effect (Beta Value)" )
+YLIM <- c( 1.5*min(Bs[3:6,]), 0 )
+barplot( Bs[3:6,], col=COLS, beside=T, ylim=YLIM, xlab="Phenotype",ylab="Beta",main="Placebo & Drug Effect (Beta Value)" )
 abline( h=seq(-5,0,.5), lty=2, col="grey50" )
 barplot( Bs[3:6,], col=COLS, beside=T, ylim=YLIM, add=T )
+X.arrow <- rep( c(1.5,2.5,3.5,4.5), rep(6,4) ) + rep( seq(0,25,5),4 )
+arrows( X.arrow, c(Confs[5,],Confs[7,],Confs[9,],Confs[11,]), X.arrow, c(Confs[6,],Confs[8,],Confs[10,],Confs[12,]), code=3,angle=90 )
+legend( "bottomright", fill=COLS, legend=c("LR: Plac","LMM: Plac","LR: Drug","LMM: Drug"), ncol=2 )
+text( X.arrow, c(Confs[5,],Confs[7,],Confs[9,],Confs[11,])-.2, label=rep("**",length(X.arrow)) )
 dev.off()
 
 ## Plot Beta values/ratios for each Phenotype
