@@ -12,7 +12,7 @@ library( lmtest )
 ###########################################################
 
 ## Set Date
-DATE <- "20150304"
+DATE <- "20150309"
 
 ## Set Paths to Data and to Save
 PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
@@ -22,9 +22,6 @@ PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Writing/Resp_Herit/Plo
 ## Load Real Data
 FT <- read.table( PathToFT, sep="\t",header=T )
 RP <- read.table( PathToRep, sep="\t",header=T )
-
-## Game Plan
-#
 
 ###########################################################
 ## ORGANIZE DATA ##########################################
@@ -136,7 +133,7 @@ for ( p in 1:length(RES) ) {
 		which_rows <- as.numeric( names(resid(MOD)) )
 		RES[[p]][which_rows,c] <- resid( MOD )
 	}
-	MOD <- lm( DEL[[p]][,5]	~ INIT.BL[,pheno] )
+	MOD <- lm( DEL[[p]][,5]	~ INIT.0[,pheno] )
 	which_rows <- as.numeric( names(resid(MOD)) )
 	RES[[p]][which_rows,5] <- resid( MOD )
 }
@@ -379,17 +376,30 @@ COLS.list <- c("black","slateblue3","steelblue2","springgreen2","gold2","chocola
 COLS <- colorRampPalette(COLS.list)(100)
 BRKS <- seq( 0,1,length.out=101 )
 png( paste(PathToSave,"/Corr_tPhenos.png",sep=""), height=1600, width=1600, pointsize=30 )
-heatmap.2( CORR.t, col=COLS, trace="none",scale="none", margins=c(8,8), main="Correlation b/n Phenotypes: Single Measure" )
+heatmap.2( CORR.t, col=COLS, trace="none",scale="none", Colv=F,Rowv=F,dendrogram="none", margins=c(8,8), main="Correlation b/n Single Measurements", lhei=c(1,5),lwid=c(1,5) )
 dev.off()
 
+###########################################################
+## WRITE TABLES OF PHENOTYPES #############################
+###########################################################
 
+## Compile Phenotype Measurements into Single Table
+INIT_TAB <- data.frame( INIT.BL, INIT.0 )
+colnames(INIT_TAB) <- paste( rep(c("Ibl","I0"),rep(ncol(INIT.0),2)), colnames(INIT.BL), sep="_" )
+WAG_TAB <- data.frame( WAG.4, WAG.12, WAG.20, WAG.28 )
+colnames(WAG_TAB) <- paste( rep(c("WAG4","WAG12","WAG20","WAG28"),rep(ncol(INIT.0),4)), colnames(WAG.4), sep="_" )
+DEL_TAB <- data.frame( DEL.t$DAS, DEL.t$lCRP, DEL.t$rSJC, DEL.t$rTJC )
+colnames(DEL_TAB) <- paste( "DEL",rep(c("WAG4","WAG12","WAG20","WAG28","FL"),4),rep(names(DEL.t),rep(5,4)), sep="_" )
 
+FULL_TAB <- data.frame( INIT_TAB, WAG_TAB, DEL_TAB )
+for ( c in 1:ncol(FULL_TAB) ) { print(paste(colnames(FULL_TAB)[c],"-",length(which(is.na( FULL_TAB[,c] ))))) }
 
-
-
-
-
-
+## Write Table
+FULL_TAB.w <- data.frame( IID=rownames(FULL_TAB), FID=rownames(FULL_TAB), FULL_TAB )
+write.table( FULL_TAB.w, gsub("20141229_Full_Table.txt","20150310_Single_Pheno_Table.txt",PathToFT), sep="\t",row.names=F,col.names=T,quote=F )
+ # Write Phenotype List
+FULL_TAB.colnames <- colnames(FULL_TAB)
+write.table( data.frame(FULL_TAB.colnames), gsub("20141229_Full_Table.txt","20150310_Pheno_List.txt",PathToFT), sep="\t",row.names=F,col.names=F,quote=F )
 
 
 

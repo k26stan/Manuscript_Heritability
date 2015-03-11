@@ -10,7 +10,7 @@ library( gplots )
 ###########################################################
 
 ## Set Date
-DATE <- "20150304"
+DATE <- "20150309"
 
 ## Set Paths to Data and to Save
 PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
@@ -223,33 +223,27 @@ length(which(is.na(D.MN.5.B)))
 
 ###########################################################
 ## % Improvement
- # Use lmList for individual Beta Values
-D.MN.6.perc <- array( , c(N.samps,6) )
-colnames(D.MN.6.perc) <- names(PH_COLS)
-for ( s in 1:N.samps ) {
-	samp <- Samps[s]
-	TEMP_TAB <- TAB[ which(TAB$IID==samp), ]
-	D.MN.6.pre[s,] <- colMeans( TEMP_TAB[which(TEMP_TAB$DRUG==0),PH_COLS], na.rm=T )
-	D.MN.6.post[s,] <- colMeans( TEMP_TAB[which(TEMP_TAB$DRUG==1),PH_COLS], na.rm=T )
-}
+ # Calculate Mean Difference (D.MN.2.diff), take % change from baseline
+D.MN.6.perc <- D.MN.2.diff / D.MN.2.pre
 D.MN.6.perc[,"lCRP"] <- ( 10^(D.MN.2.post[,"lCRP"])-10^(D.MN.2.pre[,"lCRP"]) ) / 10^(D.MN.2.pre[,"lCRP"])
 ## Check-up
 length(which(is.na(D.MN.6.perc)))
-hist( D.MN.6.perc[,"lCRP"], breaks=seq(-1,40,.25) )
-hist( 10^(D.MN.2.diff[,"lCRP"]) )
-hist( 10^(D.MN.2.pre[,"lCRP"]) )
-plot( 10^(D.MN.2.pre[,"lCRP"]), 10^(D.MN.2.diff[,"lCRP"]) )
-TEMP <- which( D.MN.2.pre[,"lCRP"] < D.MN.2.diff[,"lCRP"] )
-TAB.6.lCRP <- data.frame(D.MN.2.pre[,2],D.MN.2.post[,2],D.MN.2.diff[,2],D.MN.6.perc[,2])
-pairs( TAB.6.lCRP )
-head( TAB.6.lCRP )
-TEMP <- which(D.MN.6.perc[,2]>0)
-TEMP <- which( D.MN.2.diff[,2] > D.MN.2.pre[,2] )
-TAB.6.lCRP[TEMP,]
+# hist( D.MN.6.perc[,"lCRP"], breaks=seq(-1,40,.25) )
+# hist( 10^(D.MN.2.diff[,"lCRP"]) )
+# hist( 10^(D.MN.2.pre[,"lCRP"]) )
+# plot( 10^(D.MN.2.pre[,"lCRP"]), 10^(D.MN.2.diff[,"lCRP"]) )
+# TEMP <- which( D.MN.2.pre[,"lCRP"] < D.MN.2.diff[,"lCRP"] )
+# TAB.6.lCRP <- data.frame(D.MN.2.pre[,2],D.MN.2.post[,2],D.MN.2.diff[,2],D.MN.6.perc[,2])
+# pairs( TAB.6.lCRP )
+# head( TAB.6.lCRP )
+# TEMP <- which(D.MN.6.perc[,2]>0)
+# TEMP <- which( D.MN.2.diff[,2] > D.MN.2.pre[,2] )
+# TAB.6.lCRP[TEMP,]
 
 ###########################################################
 ## Trajectory: Beta Value for WK in Linear Model
- # Use lmList for individual Beta Values
+ # Use lmList and table including only DRUG==1, and calculate trajectory
+ # Also calculate residuals around WK fit
 TAB.1 <- TAB[ which(TAB$DRUG==1), ]
 D.MN.7.B.wk <- D.MN.7.B.int <- array( , c(N.samps,6) )
 colnames(D.MN.7.B.wk) <- colnames(D.MN.7.B.int) <- names(PH_COLS)
@@ -269,29 +263,21 @@ for ( p in 1:length(PH_COLS) ) {
 length(which(is.na(D.MN.7.B.int)))
 length(which(is.na(D.MN.7.B.wk)))
 D.MN.7.B.wk[ which(is.na(D.MN.7.B.wk)) ] <- 0
+D.MN.8.res[ which(is.na(D.MN.8.res)) ] <- 0
+
+
+
+
+DATA <- D.MN.6.perc
+DATA <- D.MN.7.B.wk
+DATA <- D.MN.8.res
 par(mfrow=c(2,3))
-for ( col in 1:6 ) { hist( D.MN.7.B.wk[,col] ) }
-TEMP <- data.frame( D.MN.7.B, D.MN.7.B.wk, D.MN.7.B.int )
-
-
-
-
-par(mfrow=c(2,3))
-for ( col in 1:ncol(D.MN.1.diff) ) {
-	DATA <- D.MN.6.perc
-	BRKS <- seq( -1, max(DATA[,col])+.1, .1 )
-	XLIM <- c( -1, min(max(BRKS),5) )
+for ( col in 1:ncol(DATA) ) {
+	BIN <- 0.1*diff(range(DATA[,col]))
+	BRKS <- seq( min(DATA[,col]), max(DATA[,col])+BIN, BIN )
+	XLIM <- range(BRKS)
 	hist( DATA[,col], breaks=BRKS, xlim=XLIM, main=colnames(DATA)[col] )
 }
-par(mfrow=c(2,3))
-for ( col in 1:ncol(D.MN.1.diff) ) {
-	DATA <-  D.MN.8.res
-	# BRKS <- seq( -1, max(DATA[,col])+.1, .1 )
-	# XLIM <- c( -1, min(max(BRKS),5) )
-	# hist( D.MN.8.res[,col], breaks=BRKS, xlim=XLIM, main=colnames(DATA)[col] )
-	hist( DATA[,col], main=colnames(DATA)[col] )
-}
-
 
 
 ############################################

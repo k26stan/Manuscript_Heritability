@@ -2,15 +2,17 @@
 ## January 5, 2015 ##
 ## Kristopher Standish ##
 
-PathToSave <- "/Users/kstandis/Dropbox/Schork/JNJ11/Slides/20150105_Q3_Deliver/"
+DATE <- "20150309"
+
+PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Writing/Resp_Herit/Plots/",DATE,sep="")
 
 ###############################################
 ## 1 - Show Distributions for Groups ##########
 ###############################################
 
 ## Start by showing only 2 groups ##
-MEAN <- -2
-ST_DEV <- .5
+MEAN <- 0
+ST_DEV <- 1
 GRP_DIFF <- .1
 DEL_DAS_RANGE <- seq( MEAN-4*ST_DEV, MEAN+4*ST_DEV, .1 )
 GRP_RANGE <- list()
@@ -22,7 +24,7 @@ SETS <- names(GRP_RANGE)
 XLIM <- range(DEL_DAS_RANGE)
 YLIM <- c(0,1)
 COLS <- c( "black", "firebrick1","chocolate1","gold1","springgreen1","cadetblue1","steelblue2","slateblue3")
-png( paste(PathToSave,"2_HER_SIM-1_2_Groups.png",sep=""), height=1000,width=1000,pointsize=28)
+png( paste(PathToSave,"/3_SimRP-1_2_Groups.png",sep=""), height=1000,width=1400,pointsize=28)
 plot( 0,0,type="n", xlim=XLIM, ylim=YLIM, main="Distribution of Mean Values", xlab="Delta-DAS", ylab="Frequency" )
 abline( h=seq( 0,1,.1), lty=2, col="grey50" )
 abline( v=seq( floor(XLIM[1]),ceiling(XLIM[2]),1), lty=2, col="grey50" )
@@ -49,7 +51,7 @@ XLIM <- range(DEL_DAS_RANGE)
 YLIM <- c(0,1)
 COLS.list <- c( "black", "firebrick1","chocolate1","gold1","springgreen1","cadetblue1","steelblue2","slateblue3")
 COLS <- colorRampPalette(COLS.list)(length(SETS))
-png( paste(PathToSave,"2_HER_SIM-1_10_Groups.png",sep=""), height=1000,width=1000,pointsize=28)
+png( paste(PathToSave,"/3_SimRP-1_10_Groups.png",sep=""), height=1000,width=1400,pointsize=28)
 plot( 0,0,type="n", xlim=XLIM, ylim=YLIM, main="Distribution of Mean Values", xlab="Delta-DAS", ylab="Frequency" )
 abline( h=seq( 0,1,.1), lty=2, col="grey50" )
 abline( v=seq( floor(XLIM[1]),ceiling(XLIM[2]),1), lty=2, col="grey50" )
@@ -67,8 +69,8 @@ dev.off()
 
 ## Simulate mean Values for 2 groups
 SAMP_SIZE <- 200
-MEAN <- -2
-ST_DEV <- .5
+MEAN <- 0
+ST_DEV <- 1
 GRP_DIFF <- .1
 SIM_DAT <- list()
 SIM_DAT$A <- rnorm( SAMP_SIZE, MEAN, ST_DEV )
@@ -79,35 +81,35 @@ GRP_RANGE$B <- dnorm( DEL_DAS_RANGE, MEAN+GRP_DIFF, ST_DEV )
 
 ## Plot it
 SETS <- names(GRP_RANGE)
-XLIM <- range(SIM_DAT)
+XLIM <- range(SIM_DAT,DEL_DAS_RANGE)
 YLIM <- c(0, SAMP_SIZE/4)
 COLS <- c( "grey30", "firebrick1","chocolate1","gold1","springgreen1","cadetblue1","steelblue1","slateblue1")
 COLS.4 <- c( "black","firebrick3")
 BRKS <- seq( floor(XLIM[1]),ceiling(XLIM[2]),.25 )
-png( paste(PathToSave,"2_HER_SIM-2_2grp_Samp.png",sep=""), height=1400,width=1000,pointsize=28)
-par(mfrow=c(2,1))
+png( paste(PathToSave,"/3_SimRP-2_2grp_Samp.png",sep=""), height=1000,width=1400,pointsize=28)
  # Grp A
-hist(SIM_DAT$A, breaks=BRKS, col=COLS.4[1], xlim=XLIM, ylim=YLIM, main="Distribution of Mean Values", xlab="Delta-DAS", ylab="Frequency" )
+hist(SIM_DAT$A, breaks=BRKS, col=COLS.4[1],density=20,angle=45, xlim=XLIM, ylim=YLIM, main="Distribution of Mean Values", xlab="Delta-DAS", ylab="Frequency" )
 abline( h=seq( 0,YLIM[2],10), lty=2, col="grey50" )
 abline( v=seq( floor(XLIM[1]),ceiling(XLIM[2]),1), lty=2, col="grey50" )
-hist(SIM_DAT$A, breaks=BRKS, col=COLS.4[1], xlim=XLIM, ylim=YLIM, main="Distribution of Mean Values", xlab="Delta-DAS", ylab="Frequency", add=T )
+hist(SIM_DAT$A, breaks=BRKS, col=COLS.4[1],density=20,angle=45, xlim=XLIM, ylim=YLIM, main="Distribution of Mean Values", xlab="Delta-DAS", ylab="Frequency", add=T )
+hist(SIM_DAT$B, breaks=BRKS, col=COLS.4[2],density=20,angle=-45, xlim=XLIM, ylim=YLIM, main="Distribution of Mean Values", xlab="Delta-DAS", ylab="Frequency", add=T )
 for ( s in 1:length(SETS) ) {
 	set <- SETS[s]
 	lines( DEL_DAS_RANGE, 50*GRP_RANGE[[set]], col=COLS[s], lwd=3, lty=1 )
 	arrows( DEL_DAS_RANGE[which.max(GRP_RANGE[[set]])], 0, DEL_DAS_RANGE[which.max(GRP_RANGE[[set]])], 50*max(GRP_RANGE[[set]])+.05, length=0, col=COLS[s], lwd=2 )
 	# text( DEL_DAS_RANGE[which.max(GRP_RANGE[[set]])], 50*max(GRP_RANGE[[set]])+.075, labels=set, col=COLS[s])
 }
- # Grp B
-hist(SIM_DAT$B, breaks=BRKS, col=COLS.4[2], xlim=XLIM, ylim=YLIM, main="Distribution of Mean Values", xlab="Delta-DAS", ylab="Frequency" )
-abline( h=seq( 0,YLIM[2],10), lty=2, col="grey50" )
-abline( v=seq( floor(XLIM[1]),ceiling(XLIM[2]),1), lty=2, col="grey50" )
-hist(SIM_DAT$B, breaks=BRKS, col=COLS.4[2], xlim=XLIM, ylim=YLIM, main="Distribution of Mean Values", xlab="Delta-DAS", ylab="Frequency", add=T )
-for ( s in 1:length(SETS) ) {
-	set <- SETS[s]
-	lines( DEL_DAS_RANGE, 50*GRP_RANGE[[set]], col=COLS[s], lwd=3, lty=1 )
-	arrows( DEL_DAS_RANGE[which.max(GRP_RANGE[[set]])], 0, DEL_DAS_RANGE[which.max(GRP_RANGE[[set]])], 50*max(GRP_RANGE[[set]])+.05, length=0, col=COLS[s], lwd=2 )
-	# text( DEL_DAS_RANGE[which.max(GRP_RANGE[[set]])], 50*max(GRP_RANGE[[set]])+.075, labels=set, col=COLS[s])
-}
+#  # Grp B
+# hist(SIM_DAT$B, breaks=BRKS, col=COLS.4[2],density=20, xlim=XLIM, ylim=YLIM, main="Distribution of Mean Values", xlab="Delta-DAS", ylab="Frequency", add=T )
+# abline( h=seq( 0,YLIM[2],10), lty=2, col="grey50" )
+# abline( v=seq( floor(XLIM[1]),ceiling(XLIM[2]),1), lty=2, col="grey50" )
+# hist(SIM_DAT$B, breaks=BRKS, col=COLS.4[2], xlim=XLIM, ylim=YLIM, main="Distribution of Mean Values", xlab="Delta-DAS", ylab="Frequency", add=T )
+# for ( s in 1:length(SETS) ) {
+# 	set <- SETS[s]
+# 	lines( DEL_DAS_RANGE, 50*GRP_RANGE[[set]], col=COLS[s], lwd=3, lty=1 )
+# 	arrows( DEL_DAS_RANGE[which.max(GRP_RANGE[[set]])], 0, DEL_DAS_RANGE[which.max(GRP_RANGE[[set]])], 50*max(GRP_RANGE[[set]])+.05, length=0, col=COLS[s], lwd=2 )
+# 	# text( DEL_DAS_RANGE[which.max(GRP_RANGE[[set]])], 50*max(GRP_RANGE[[set]])+.075, labels=set, col=COLS[s])
+# }
 dev.off()
 
 ############################################################################
@@ -168,7 +170,7 @@ for ( r in 1:nrow(FT) ) {
 }
 
 ## Plot Distribution of VAR.DAS
-png( paste(PathToSave,"2_HER_SIM-3_Hist_VAR_DAS.png",sep=""), height=1000,width=1000,pointsize=28 )
+png( paste(PathToSave,"/3_SimRP-3_Hist_VAR_DAS.png",sep=""), height=1000,width=1000,pointsize=28 )
 hist( VAR.DAS, breaks=seq(0,4,.25), col="purple", main="Distribution of Variance around Mean (Post-Gol)", xlab="Post-Treatment Variance" )
 dev.off()
 
