@@ -10,16 +10,18 @@ library( gplots )
 ###########################################################
 
 ## Set Date
-DATE <- "20150309"
+DATE <- "20150313"
 
 ## Set Paths to Data and to Save
 PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
 PathToRep <- "/Users/kstandis/Data/Burn/Data/Phenos/Time_Series/20150226_Resp_v_Time.txt"
-PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Writing/Resp_Herit/Plots/",DATE,sep="")
+PathToWAG <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20150310_Single_Pheno_Table.txt"
+PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,sep="")
 
 ## Load Real Data
 FT <- read.table( PathToFT, sep="\t",header=T )
 RP <- read.table( PathToRep, sep="\t",header=T )
+WAG <- read.table( PathToWAG, sep="\t",header=T )
 
 ## Game Plan
 #
@@ -91,7 +93,7 @@ N.samps <- length( Samps )
 WKS <- as.numeric( unique( TAB$WK ) )
 
 ###########################################################
-## Mean (w/ LOCF)
+## 1 - Mean (w/ LOCF)
 D.MN.1.pre <- D.MN.1.post <- array( , c(N.samps,6) )
 colnames(D.MN.1.pre) <- colnames(D.MN.1.post) <- names(PH_COLS)
 for ( s in 1:N.samps ) {
@@ -116,7 +118,7 @@ D.MN.1.diff <- D.MN.1.post - D.MN.1.pre
 length(which(is.na(D.MN.1.diff)))
 
 ###########################################################
-## Mean (w/o LOCF)
+## 2 - Mean (w/o LOCF)
 D.MN.2.pre <- D.MN.2.post <- array( , c(N.samps,6) )
 colnames(D.MN.2.pre) <- colnames(D.MN.2.post) <- names(PH_COLS)
 for ( s in 1:N.samps ) {
@@ -130,7 +132,7 @@ D.MN.2.diff <- D.MN.2.post - D.MN.2.pre
 length(which(is.na(D.MN.2.diff)))
 
 ###########################################################
-## Mean (Area)
+## 3 - Mean (Area)
  # Trapezoid Rule: A = .5*h*(b1+b2)
    # h = WK[i+1] - WK[i]
    # b1 = Pheno[WK[i+1]]
@@ -170,7 +172,7 @@ D.MN.3.diff <- D.MN.3.post - D.MN.3.pre
 length(which(is.na(D.MN.3.diff)))
 
 ###########################################################
-## Mean: Cohen's D Statistic
+## 4 - Mean: Cohen's D Statistic
  # ( mean(x1)-mean(x2) ) / s
  # s = sqrt( ( (n1-1)s1^2 + (n2-1)s2^2 ) / (n1+n2-2) )
 D.MN.4.stat <- array( , c(N.samps,6) )
@@ -197,10 +199,10 @@ for ( s in 1:N.samps ) {
 ## Check-up
 length(which(is.na(D.MN.4.stat)))
 length(which(D.MN.4.stat=="Inf"))
-plot( D.MN.1.diff, D.MN.4.stat )
+# plot( D.MN.1.diff, D.MN.4.stat )
 
 ###########################################################
-## Beta Value for Linear Model
+## 5/9 - Beta Value for Linear Model
  # Use lmList for individual Beta Values
 D.MN.5.B <- D.MN.5.t <- D.MN.5.B.int <- D.MN.5.t.int <- array( , c(N.samps,6) )
 colnames(D.MN.5.B) <- colnames(D.MN.5.t) <- colnames(D.MN.5.B.int) <- colnames(D.MN.5.t.int) <- names(PH_COLS)
@@ -222,10 +224,11 @@ for ( p in 1:length(PH_COLS) ) {
 length(which(is.na(D.MN.5.B)))
 
 ###########################################################
-## % Improvement
+## 6 - % Improvement
  # Calculate Mean Difference (D.MN.2.diff), take % change from baseline
 D.MN.6.perc <- D.MN.2.diff / D.MN.2.pre
 D.MN.6.perc[,"lCRP"] <- ( 10^(D.MN.2.post[,"lCRP"])-10^(D.MN.2.pre[,"lCRP"]) ) / 10^(D.MN.2.pre[,"lCRP"])
+
 ## Check-up
 length(which(is.na(D.MN.6.perc)))
 # hist( D.MN.6.perc[,"lCRP"], breaks=seq(-1,40,.25) )
@@ -241,7 +244,7 @@ length(which(is.na(D.MN.6.perc)))
 # TAB.6.lCRP[TEMP,]
 
 ###########################################################
-## Trajectory: Beta Value for WK in Linear Model
+## 7/8 - Trajectory: Beta Value for WK in Linear Model
  # Use lmList and table including only DRUG==1, and calculate trajectory
  # Also calculate residuals around WK fit
 TAB.1 <- TAB[ which(TAB$DRUG==1), ]
@@ -265,44 +268,93 @@ length(which(is.na(D.MN.7.B.wk)))
 D.MN.7.B.wk[ which(is.na(D.MN.7.B.wk)) ] <- 0
 D.MN.8.res[ which(is.na(D.MN.8.res)) ] <- 0
 
+###########################################################
+## MAKE SOME PLOTS ########################################
+###########################################################
 
+## Sanity Check
+# DATA <- D.MN.6.perc
+# DATA <- D.MN.7.B.wk
+# DATA <- D.MN.8.res
+# par(mfrow=c(2,3))
+# for ( col in 1:ncol(DATA) ) {
+# 	BIN <- 0.1*diff(range(DATA[,col]))
+# 	BRKS <- seq( min(DATA[,col]), max(DATA[,col])+BIN, BIN )
+# 	XLIM <- range(BRKS)
+# 	hist( DATA[,col], breaks=BRKS, xlim=XLIM, main=colnames(DATA)[col] )
+# }
 
-
-DATA <- D.MN.6.perc
-DATA <- D.MN.7.B.wk
-DATA <- D.MN.8.res
-par(mfrow=c(2,3))
-for ( col in 1:ncol(DATA) ) {
-	BIN <- 0.1*diff(range(DATA[,col]))
-	BRKS <- seq( min(DATA[,col]), max(DATA[,col])+BIN, BIN )
-	XLIM <- range(BRKS)
-	hist( DATA[,col], breaks=BRKS, xlim=XLIM, main=colnames(DATA)[col] )
-}
-
-
-############################################
-## PLOT ##
-
-## Heatmap of Correlation Amongst Phenotypes
-FRAME <- data.frame(D.MN.1.diff,D.MN.2.diff,D.MN.3.diff,D.MN.4.stat,D.MN.5.B,D.MN.6.perc,D.MN.7.B.wk,D.MN.8.res,D.MN.9.res)
-DERIV_NAMES <- c("MNw","MNwo","MNa","MNcd","Bdr","PRC","Bwk","VARdr","VARwk") ; N.Deriv <- length(DERIV_NAMES)
+## Combine Differences into Single Table
+DIFF_FRAME <- data.frame( D.MN.1.diff, D.MN.2.diff, D.MN.3.diff, D.MN.4.stat, D.MN.5.B, D.MN.6.perc, D.MN.7.B.wk, D.MN.8.res, D.MN.9.res )
+DERIV_NAMES <- paste("DEL",c("MNw","MNwo","MNa","MNcd","Bdr","PRC","Bwk","VARdr","VARwk"),sep="_") ; N.Deriv <- length(DERIV_NAMES)
 PHENO_NAMES <- names(PH_COLS) ; N.Pheno <- length(PHENO_NAMES)
 FRAME_NAMES <- paste( rep(DERIV_NAMES,rep(N.Pheno,N.Deriv)), rep(PHENO_NAMES,N.Deriv), sep="_" )
-colnames(FRAME) <- FRAME_NAMES
-CORR <- cor( FRAME, use="pairwise.complete.obs", method="spearman" )
+colnames(DIFF_FRAME) <- FRAME_NAMES
+rownames(DIFF_FRAME) <- Samps
+
+## Combine Post-Treatment Scores into Single Table
+D.MN.5.post <- D.MN.5.B.int+D.MN.5.B
+POST_FRAME <- data.frame( D.MN.1.post, D.MN.2.post, D.MN.3.post, D.MN.5.post )
+DERIV_NAMES <- paste("POST",c("MNw","MNwo","MNa","Bdr"),sep="_") ; N.Deriv <- length(DERIV_NAMES)
+PHENO_NAMES <- names(PH_COLS) ; N.Pheno <- length(PHENO_NAMES)
+FRAME_NAMES <- paste( rep(DERIV_NAMES,rep(N.Pheno,N.Deriv)), rep(PHENO_NAMES,N.Deriv), sep="_" )
+colnames(POST_FRAME) <- FRAME_NAMES
+rownames(POST_FRAME) <- Samps
+
+## Combine Pre-Treatment Scores into Single Table
+PRE_FRAME <- data.frame( D.MN.1.pre, D.MN.2.pre, D.MN.3.pre, D.MN.5.B.int )
+DERIV_NAMES <- paste("PRE",c("MNw","MNwo","MNa","Bdr"),sep="_") ; N.Deriv <- length(DERIV_NAMES)
+PHENO_NAMES <- names(PH_COLS) ; N.Pheno <- length(PHENO_NAMES)
+FRAME_NAMES <- paste( rep(DERIV_NAMES,rep(N.Pheno,N.Deriv)), rep(PHENO_NAMES,N.Deriv), sep="_" )
+colnames(PRE_FRAME) <- FRAME_NAMES
+rownames(PRE_FRAME) <- Samps
+
+## Heatmap of Correlation Amongst Phenotypes
 COLS.list <- c("black","slateblue3","steelblue2","springgreen2","gold2","chocolate2","firebrick1")
 COLS.list <- c("gold2","chocolate2","firebrick1","black","slateblue3","steelblue2","springgreen2")
 COLS <- colorRampPalette(COLS.list)(100)
+ # Delta-Stats
+CORR.diff <- cor( DIFF_FRAME, use="pairwise.complete.obs", method="spearman" )
 BRKS <- seq( -1,1,length.out=101 )
-heatmap.2( CORR, col=COLS, trace="none", breaks=BRKS, scale="none" )
+png( paste(PathToSave,"/4_Derived_Diff_Heatmap.png",sep=""), height=1600,width=1600,pointsize=32 )
+heatmap.2( CORR.diff, main="Correlation: Derived Delta Stats", col=COLS, trace="none", breaks=BRKS, scale="none", margins=c(7,7) )
+dev.off()
+ # Pre/Post-Treatment Stats
+CORR.pp <- cor( data.frame(PRE_FRAME,POST_FRAME), use="pairwise.complete.obs", method="spearman" )
+BRKS <- seq( -1,1,length.out=101 )
+png( paste(PathToSave,"/4_Derived_PrePost_Heatmap.png",sep=""), height=1600,width=1600,pointsize=32 )
+heatmap.2( CORR.pp, main="Correlation: Derived Pre/Post Stats", col=COLS, trace="none", breaks=BRKS, scale="none", margins=c(7,7) )
+dev.off()
 
-for ( col in 1:ncol(D.MN.1.diff) ) {
-	par(ask=T)
-	pairs( data.frame( D.MN.1.diff[,col],D.MN.2.diff[,col],D.MN.3.diff[,col],D.MN.4.stat[,col],D.MN.5.B[,col]) )
-}
+###########################################################
+## WRITE TABLES ###########################################
+###########################################################
+
+## Combine Derived Stats into one Table
+FULL_TABLE <- data.frame( FID=rownames(DIFF_FRAME),IID=rownames(DIFF_FRAME), DIFF_FRAME, PRE_FRAME, POST_FRAME )
+
+## Write Table
+PathToWrite <- gsub("20150310_Single","20150313_Derived",PathToWAG)
+write.table( FULL_TABLE, PathToWrite, sep="\t",col.names=T,row.names=F,quote=F)
 
 
-pairs( D.MN.4.stat )
+
+
+
+
+
+
+
+
+
+
+# for ( col in 1:ncol(D.MN.1.diff) ) {
+# 	par(ask=T)
+# 	pairs( data.frame( D.MN.1.diff[,col],D.MN.2.diff[,col],D.MN.3.diff[,col],D.MN.4.stat[,col],D.MN.5.B[,col]) )
+# }
+
+
+# pairs( D.MN.4.stat )
 
 
 
