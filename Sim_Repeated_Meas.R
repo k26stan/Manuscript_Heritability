@@ -2,7 +2,7 @@
 ## January 5, 2015 ##
 ## Kristopher Standish ##
 
-DATE <- "20150313"
+DATE <- "20150316"
 
 PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,sep="")
 
@@ -322,7 +322,7 @@ for ( s in 1:length(SAMP_SIZE) ) {
 COLS.LIST <- c("maroon1","firebrick2","chocolate2","gold2","springgreen2","steelblue2","slateblue3","black")
 COLS <- colorRampPalette(COLS.LIST)(length(EFF_SIZE))
 COLS <- sample( colorRampPalette(COLS.LIST)(length(EFF_SIZE)) )
-XLIM <- range( SAMP_SIZE )
+XLIM <- range( SAMP_SIZE ) + c(0,40)
 YLIM <- c(0,1)
  # Plot 1 effect size
 png( paste(PathToSave,"/3_SimRP-6_Power_2.png",sep=""), height=1000,width=1400,pointsize=34 )
@@ -333,7 +333,7 @@ for ( e in 1 ) {
 	points( SAMP_SIZE, POWER.MN.2[,e], col=COLS[e], lty=3, type="o", lwd=3, pch=20 )
 	points( SAMP_SIZE, POWER.1[,e], col=COLS[e], lty=2, type="o", lwd=3, pch=20 )
 }
-legend( "topleft", legend=c("Mean_Par","Mean_Obs","Single"), lty=c(1,3,2), lwd=3 )
+legend( "bottomright", legend=c("Mean_Par","Mean_Obs","Single"), lty=c(1,3,2), lwd=3, cex=.8 )
 dev.off()
  # Plot all effect sizes
 png( paste(PathToSave,"/3_SimRP-6_Power_ALL.png",sep=""), height=1000,width=1400,pointsize=34 )

@@ -337,6 +337,36 @@ FULL_TABLE <- data.frame( FID=rownames(DIFF_FRAME),IID=rownames(DIFF_FRAME), DIF
 PathToWrite <- gsub("20150310_Single","20150313_Derived",PathToWAG)
 write.table( FULL_TABLE, PathToWrite, sep="\t",col.names=T,row.names=F,quote=F)
 
+## Write Phenotype/Covariate List
+PHENO_NAMES.write <- colnames(FULL_TABLE)[3:ncol(FULL_TABLE)]
+PHENO_NAMES.pre <- PHENO_NAMES.write[ grep("PRE",PHENO_NAMES.write) ]
+PHENO_NAMES.write <- PHENO_NAMES.write[ grep("PRE",PHENO_NAMES.write,invert=T) ]
+COV_NAMES.write <- PHENO_NAMES.write
+COV_NAMES.write <- gsub("POST","PRE",COV_NAMES.write)
+COV_NAMES.write[ grep("MNw_",COV_NAMES.write) ] <- COV_NAMES.write[ grep("PRE_MNw_",COV_NAMES.write) ]
+COV_NAMES.write[ grep("MNwo_",COV_NAMES.write) ] <- COV_NAMES.write[ grep("PRE_MNwo_",COV_NAMES.write) ]
+COV_NAMES.write[ grep("MNa_",COV_NAMES.write) ] <- COV_NAMES.write[ grep("PRE_MNa_",COV_NAMES.write) ]
+COV_NAMES.write[ grep("Bdr_",COV_NAMES.write) ] <- COV_NAMES.write[ grep("PRE_Bdr_",COV_NAMES.write) ]
+COV_NAMES.write[ grep("DEL",COV_NAMES.write) ] <- ""
+ # Combine Lists into Single Table
+PHENO_COV_LIST <- data.frame( PHENO_NAMES.write, COV_NAMES.write )
+
+## Write Pheno/Cov Table
+PathToWrite <- gsub("20150310_Single_Pheno","20150313_PhenoCov",PathToWAG)
+write.table( PHENO_COV_LIST, PathToWrite, sep="\t",row.names=F,col.names=F,quote=F )
+
+# ## Test Correlation b/n Initial Values & Delta-Values
+# for ( r in 1:nrow(PHENO_COV_LIST) ) {
+# 	resp <- as.character( PHENO_COV_LIST[r,1] )
+# 	pred <- as.character( PHENO_COV_LIST[r,2] )
+# 	if (pred!="") {
+# 		TEMP_TAB <- FULL_TABLE[ , c(resp,pred) ]
+# 		colnames(TEMP_TAB) <- c("resp","pred")
+# 		MOD <- lm( resp ~ pred, data=TEMP_TAB )
+# 		print(paste( "######",resp,"~",pred ))
+# 		print( summary(MOD)$coefficients["pred","Pr(>|t|)"] )	
+# 	}
+# }
 
 
 
@@ -344,7 +374,9 @@ write.table( FULL_TABLE, PathToWrite, sep="\t",col.names=T,row.names=F,quote=F)
 
 
 
-
+###########################################################
+## END OF DOC #############################################
+###########################################################
 
 
 
@@ -376,8 +408,3 @@ write.table( FULL_TABLE, PathToWrite, sep="\t",col.names=T,row.names=F,quote=F)
 
 
 
-
-
-###########################################################
-## END OF DOC #############################################
-###########################################################

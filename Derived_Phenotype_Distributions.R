@@ -57,12 +57,12 @@ N.samps <- length( Samps )
 ###########################################################
  # 4, 12, 20, 28 WAG
  # First & Last
-DEL_CATS <- c("MNw","MNwo","MNa","MNcd","Bdr","PRC","Bwk","VARdr","VARwk")
 
 ###########################################################
 ## Distributions: Delta
 
 ## Create Tables of Delta-Values
+DEL_CATS <- c("MNw","MNwo","MNa","MNcd","Bdr","PRC","Bwk","VARdr","VARwk")
 DEL <- list()
 DEL$DAS <- data.frame( MG[, colnames(DER)[grep("DEL.*DAS",colnames(DER))] ] )
 DEL$lCRP <- data.frame( MG[, colnames(DER)[grep("DEL.*CRP",colnames(DER))] ] )
@@ -70,8 +70,20 @@ DEL$rSJC <- data.frame( MG[, colnames(DER)[setdiff( grep("DEL.*SJC",colnames(DER
 DEL$rTJC <- data.frame( MG[, colnames(DER)[setdiff( grep("DEL.*TJC",colnames(DER)),grep("28",colnames(DER)) ) ] ] )
 for ( i in 1:length(DEL) ) { colnames(DEL[[i]]) <- DEL_CATS }
 
+## Create Tables of Post-Treatment Values
+POST_CATS <- c("MNw","MNwo","MNa","Bdr")
+POST <- list()
+POST$DAS <- data.frame( MG[, colnames(DER)[grep("POST.*DAS",colnames(DER))] ] )
+POST$lCRP <- data.frame( MG[, colnames(DER)[grep("POST.*CRP",colnames(DER))] ] )
+POST$rSJC <- data.frame( MG[, colnames(DER)[setdiff( grep("POST.*SJC",colnames(DER)),grep("28",colnames(DER)) ) ] ] )
+POST$rTJC <- data.frame( MG[, colnames(DER)[setdiff( grep("POST.*TJC",colnames(DER)),grep("28",colnames(DER)) ) ] ] )
+for ( i in 1:length(POST) ) { colnames(POST[[i]]) <- POST_CATS }
+
 ###########################################################
 ## Distributions: Residual vs Initial Values
+
+## Create table to write Pheno/Covs to (for GCTA)
+WRITE_PHENO_TAB <- array( ,c(0,2) )
 
 ## Categories of Pheno using Pre- as Covariate
 RES_CATS <- c("MNw","MNwo","MNa","Bdr")
@@ -84,7 +96,7 @@ rownames(BP.test) <- RES_CATS
 for ( p in 1:length(RES) ) {
 	pheno <- names(RES)[p]
 	for ( c in 1:length(RES_CATS) ) {
-		# DEL_COLNAME <- paste( "DEL",RES_CATS[c],pheno,sep="_" )
+		DEL_COLNAME.w <- paste( "DEL",RES_CATS[c],pheno,sep="_" )
 		DEL_COLNAME <- RES_CATS[c]
 		PRE_COLNAME <- paste( "PRE",RES_CATS[c],pheno,sep="_" )
 		MOD <- lm( DEL[[p]][,DEL_COLNAME] ~ MG[,PRE_COLNAME] )
@@ -93,6 +105,7 @@ for ( p in 1:length(RES) ) {
 		## BP Test
 		BP <- bptest( MOD )$p.value
 		BP.test[c,p] <- BP
+		WRITE_PHENO_TAB <- rbind( WRITE_PHENO_TAB, c( DEL_COLNAME.w, PRE_COLNAME ) )
 	}
 	RES[[p]] <- RES[[p]][, RES_CATS] # grep( paste(RES_CATS,collapse="|"), colnames(RES$DAS) ) ]
 }
