@@ -350,11 +350,6 @@ dev.off()
 
 
 
-# library(gplots)
-# heatmap.2( POWER.MN.1, Rowv=F, Colv=F, dendrogram="none",scale="none",trace="none" )
-
-
-
 
 
 
@@ -368,6 +363,9 @@ dev.off()
 
 
 
+
+# library(gplots)
+# heatmap.2( POWER.MN.1, Rowv=F, Colv=F, dendrogram="none",scale="none",trace="none" )
 
 
 

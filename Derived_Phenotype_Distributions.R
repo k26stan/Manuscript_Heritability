@@ -308,3 +308,25 @@ dev.off()
 ###########################################################
 ## END OF DOC #############################################
 ###########################################################
+
+
+## Normalize to Mean (by Measurement)
+DER.2 <- DER[,3:ncol(DER)]
+rownames(DER.2) <- DER$FID
+CORR.2 <- cor( t(DER.2), use="complete.pairwise.obs",method="spearman" )
+heatmap.2( CORR.2, scale="none",trace="none", col=COLS.heat, RowSideColors=colorRampPalette(c("black","red1"))(nrow(CORR.2)) )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
