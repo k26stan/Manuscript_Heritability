@@ -309,15 +309,21 @@ dev.off()
 ## END OF DOC #############################################
 ###########################################################
 
-
+COLS <- c("firebrick1","chocolate1","gold1","chartreuse1","dodgerblue1")
+COLS <- c("firebrick1","gold1","dodgerblue1")
+COLS.heat <- colorRampPalette(COLS)(100)
 ## Normalize to Mean (by Measurement)
 DER.2 <- DER[,3:ncol(DER)]
 rownames(DER.2) <- DER$FID
-CORR.2 <- cor( t(DER.2), use="complete.pairwise.obs",method="spearman" )
+for ( c in 1:ncol(DER.2) ) {
+	TEMP <- ( DER.2[,c] - mean(DER.2[,c]) ) / sd(DER.2[,c])
+	DER.2[,c] <- TEMP
+}
+CORR.2 <- cor( t(DER.2), use="pairwise.complete.obs",method="spearman" )
 heatmap.2( CORR.2, scale="none",trace="none", col=COLS.heat, RowSideColors=colorRampPalette(c("black","red1"))(nrow(CORR.2)) )
 
-
-
+COLUMNS <- sample( 1:ncol(DER.2), 5 )
+pairs( DER.2[,COLUMNS] )
 
 
 
