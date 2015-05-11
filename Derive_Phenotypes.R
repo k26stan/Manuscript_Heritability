@@ -10,7 +10,7 @@ library( gplots )
 ###########################################################
 
 ## Set Date
-DATE <- "20150313"
+DATE <- "20150506"
 
 ## Set Paths to Data and to Save
 PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
@@ -39,7 +39,7 @@ WKS <- as.numeric( unique( RP$WK ) )
  # DAS/lCRP/rSJC/rTJC/rSJC28/rTJC28
 PH <- data.frame( lCRP=log10(RP$CRP), rSJC=sqrt(RP$SJC), rTJC=sqrt(RP$TJC), rSJC28=sqrt(RP$SJC28), rTJC28=sqrt(RP$TJC28) )
 DAT.1 <- data.frame( RP, PH )
-PH_COLS <- c(16,21:25)
+PH_COLS <- c(16,21:25,15,17,18)
 names(PH_COLS) <- colnames(DAT.1)[PH_COLS]
 
 ## Remove Samples in Study for less than 8 weeks (as before)
@@ -94,7 +94,7 @@ WKS <- as.numeric( unique( TAB$WK ) )
 
 ###########################################################
 ## 1 - Mean (w/ LOCF)
-D.MN.1.pre <- D.MN.1.post <- array( , c(N.samps,6) )
+D.MN.1.pre <- D.MN.1.post <- array( , c(N.samps,length(PH_COLS)) )
 colnames(D.MN.1.pre) <- colnames(D.MN.1.post) <- names(PH_COLS)
 for ( s in 1:N.samps ) {
 	samp <- Samps[s]
@@ -119,7 +119,7 @@ length(which(is.na(D.MN.1.diff)))
 
 ###########################################################
 ## 2 - Mean (w/o LOCF)
-D.MN.2.pre <- D.MN.2.post <- array( , c(N.samps,6) )
+D.MN.2.pre <- D.MN.2.post <- array( , c(N.samps,length(PH_COLS)) )
 colnames(D.MN.2.pre) <- colnames(D.MN.2.post) <- names(PH_COLS)
 for ( s in 1:N.samps ) {
 	samp <- Samps[s]
@@ -137,7 +137,7 @@ length(which(is.na(D.MN.2.diff)))
    # h = WK[i+1] - WK[i]
    # b1 = Pheno[WK[i+1]]
    # b2 = Pheno[WK[i]]
-D.MN.3.pre <- D.MN.3.post <- array( , c(N.samps,6) )
+D.MN.3.pre <- D.MN.3.post <- array( , c(N.samps,length(PH_COLS)) )
 colnames(D.MN.3.pre) <- colnames(D.MN.3.post) <- names(PH_COLS)
 for ( s in 1:N.samps ) {
 	samp <- Samps[s]
@@ -175,7 +175,7 @@ length(which(is.na(D.MN.3.diff)))
 ## 4 - Mean: Cohen's D Statistic
  # ( mean(x1)-mean(x2) ) / s
  # s = sqrt( ( (n1-1)s1^2 + (n2-1)s2^2 ) / (n1+n2-2) )
-D.MN.4.stat <- array( , c(N.samps,6) )
+D.MN.4.stat <- array( , c(N.samps,length(PH_COLS)) )
 colnames(D.MN.4.stat) <- names(PH_COLS)
 for ( s in 1:N.samps ) {
 	samp <- Samps[s]
@@ -204,9 +204,9 @@ length(which(D.MN.4.stat=="Inf"))
 ###########################################################
 ## 5/9 - Beta Value for Linear Model
  # Use lmList for individual Beta Values
-D.MN.5.B <- D.MN.5.t <- D.MN.5.B.int <- D.MN.5.t.int <- array( , c(N.samps,6) )
+D.MN.5.B <- D.MN.5.t <- D.MN.5.B.int <- D.MN.5.t.int <- array( , c(N.samps,length(PH_COLS)) )
 colnames(D.MN.5.B) <- colnames(D.MN.5.t) <- colnames(D.MN.5.B.int) <- colnames(D.MN.5.t.int) <- names(PH_COLS)
-D.MN.9.res <- array( , c(N.samps,6) )
+D.MN.9.res <- array( , c(N.samps,length(PH_COLS)) )
 colnames(D.MN.9.res) <- names(PH_COLS)
 for ( p in 1:length(PH_COLS) ) {
 	col <- PH_COLS[p]
@@ -248,9 +248,9 @@ length(which(is.na(D.MN.6.perc)))
  # Use lmList and table including only DRUG==1, and calculate trajectory
  # Also calculate residuals around WK fit
 TAB.1 <- TAB[ which(TAB$DRUG==1), ]
-D.MN.7.B.wk <- D.MN.7.B.int <- array( , c(N.samps,6) )
+D.MN.7.B.wk <- D.MN.7.B.int <- array( , c(N.samps,length(PH_COLS)) )
 colnames(D.MN.7.B.wk) <- colnames(D.MN.7.B.int) <- names(PH_COLS)
-D.MN.8.res <- array( , c(N.samps,6) )
+D.MN.8.res <- array( , c(N.samps,length(PH_COLS)) )
 colnames(D.MN.8.res) <- names(PH_COLS)
 for ( p in 1:length(PH_COLS) ) {
 	col <- PH_COLS[p]
@@ -334,7 +334,7 @@ dev.off()
 FULL_TABLE <- data.frame( FID=rownames(DIFF_FRAME),IID=rownames(DIFF_FRAME), DIFF_FRAME, PRE_FRAME, POST_FRAME )
 
 ## Write Table
-PathToWrite <- gsub("20150310_Single","20150313_Derived",PathToWAG)
+PathToWrite <- gsub("20150310_Single","20150506_Derived",PathToWAG)
 write.table( FULL_TABLE, PathToWrite, sep="\t",col.names=T,row.names=F,quote=F)
 
 ## Write Phenotype/Covariate List
@@ -352,7 +352,7 @@ COV_NAMES.write[ grep("DEL",COV_NAMES.write) ] <- ""
 PHENO_COV_LIST <- data.frame( PHENO_NAMES.write, COV_NAMES.write )
 
 ## Write Pheno/Cov Table
-PathToWrite <- gsub("20150310_Single_Pheno","20150313_PhenoCov",PathToWAG)
+PathToWrite <- gsub("20150310_Single_Pheno","20150506_PhenoCov",PathToWAG)
 write.table( PHENO_COV_LIST, PathToWrite, sep="\t",row.names=F,col.names=F,quote=F )
 
 # ## Test Correlation b/n Initial Values & Delta-Values
