@@ -12,12 +12,12 @@ library( lmtest )
 ###########################################################
 
 ## Set Date
-DATE <- "20150309"
+DATE <- "20150520"
 
 ## Set Paths to Data and to Save
 PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
 PathToRep <- "/Users/kstandis/Data/Burn/Data/Phenos/Time_Series/20150226_Resp_v_Time.txt"
-PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Writing/Resp_Herit/Plots/",DATE,sep="")
+PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,sep="")
 
 ## Load Real Data
 FT <- read.table( PathToFT, sep="\t",header=T )
@@ -390,16 +390,18 @@ WAG_TAB <- data.frame( WAG.4, WAG.12, WAG.20, WAG.28 )
 colnames(WAG_TAB) <- paste( rep(c("WAG4","WAG12","WAG20","WAG28"),rep(ncol(INIT.0),4)), colnames(WAG.4), sep="_" )
 DEL_TAB <- data.frame( DEL.t$DAS, DEL.t$lCRP, DEL.t$rSJC, DEL.t$rTJC )
 colnames(DEL_TAB) <- paste( "DEL",rep(c("WAG4","WAG12","WAG20","WAG28","FL"),4),rep(names(DEL.t),rep(5,4)), sep="_" )
+DEL_TAB.2 <- data.frame( DEL$CRP, DEL$SJC, DEL$TJC )
+colnames(DEL_TAB.2) <- paste( "DEL",rep(c("WAG4","WAG12","WAG20","WAG28","FL"),3),rep(names(DEL)[2:4],rep(5,3)), sep="_" )
 
-FULL_TAB <- data.frame( INIT_TAB, WAG_TAB, DEL_TAB )
+FULL_TAB <- data.frame( INIT_TAB, WAG_TAB, DEL_TAB, DEL_TAB.2 )
 for ( c in 1:ncol(FULL_TAB) ) { print(paste(colnames(FULL_TAB)[c],"-",length(which(is.na( FULL_TAB[,c] ))))) }
 
 ## Write Table
 FULL_TAB.w <- data.frame( IID=rownames(FULL_TAB), FID=rownames(FULL_TAB), FULL_TAB )
-write.table( FULL_TAB.w, gsub("20141229_Full_Table.txt","20150310_Single_Pheno_Table.txt",PathToFT), sep="\t",row.names=F,col.names=T,quote=F )
+write.table( FULL_TAB.w, gsub("20141229_Full_Table.txt",paste(DATE,"_Single_Pheno_Table.txt",sep=""),PathToFT), sep="\t",row.names=F,col.names=T,quote=F )
  # Write Phenotype List
 FULL_TAB.colnames <- colnames(FULL_TAB)
-write.table( data.frame(FULL_TAB.colnames), gsub("20141229_Full_Table.txt","20150310_Pheno_List.txt",PathToFT), sep="\t",row.names=F,col.names=F,quote=F )
+write.table( data.frame(FULL_TAB.colnames), gsub("20141229_Full_Table.txt",paste(DATE,"Pheno_List.txt",sep=""),PathToFT), sep="\t",row.names=F,col.names=F,quote=F )
 
 
 
