@@ -10,21 +10,22 @@ library( gplots )
 ###########################################################
 
 ## Set Date
-DATE <- "20150506"
+DATE <- gsub("-","",Sys.Date())
 
 ## Set Paths to Data and to Save
-PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
-PathToRep <- "/Users/kstandis/Data/Burn/Data/Phenos/Time_Series/20150226_Resp_v_Time.txt"
-PathToWAG <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20150310_Single_Pheno_Table.txt"
+# PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
+# PathToRep <- "/Users/kstandis/Data/Burn/Data/Phenos/Time_Series/20150226_Resp_v_Time.txt"
+# PathToWAG <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20150310_Single_Pheno_Table.txt"
+PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20150520_Full_Table.txt"
+PathToRep <- "/Users/kstandis/Data/Burn/Data/Phenos/Time_Series/20150530_Resp_v_Time.txt"
+PathToWAG <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20150520_Single_Pheno_Table.txt"
 PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,sep="")
+dir.create( PathToSave )
 
 ## Load Real Data
 FT <- read.table( PathToFT, sep="\t",header=T )
 RP <- read.table( PathToRep, sep="\t",header=T )
 WAG <- read.table( PathToWAG, sep="\t",header=T )
-
-## Game Plan
-#
 
 ###########################################################
 ## ORGANIZE DATA ##########################################
@@ -37,9 +38,11 @@ WKS <- as.numeric( unique( RP$WK ) )
 
 ## Calculate Transformations of Phenotypes
  # DAS/lCRP/rSJC/rTJC/rSJC28/rTJC28
-PH <- data.frame( lCRP=log10(RP$CRP), rSJC=sqrt(RP$SJC), rTJC=sqrt(RP$TJC), rSJC28=sqrt(RP$SJC28), rTJC28=sqrt(RP$TJC28) )
-DAT.1 <- data.frame( RP, PH )
-PH_COLS <- c(16,21:25,15,17,18)
+# PH <- data.frame( lCRP=log10(RP$CRP), rSJC=sqrt(RP$SJC), rTJC=sqrt(RP$TJC), rSJC28=sqrt(RP$SJC28), rTJC28=sqrt(RP$TJC28) )
+# DAT.1 <- data.frame( RP, PH )
+DAT.1 <- RP
+PH_COLS.names <- c("DAS","CRP","SJC","TJC","SJC28","TJC28","lCRP","rSJC","rTJC","rSJC28","rTJC28")
+PH_COLS <- which( colnames(DAT.1) %in% PH_COLS.names ) # c(16,21:25,15,17,18)
 names(PH_COLS) <- colnames(DAT.1)[PH_COLS]
 
 ## Remove Samples in Study for less than 8 weeks (as before)
@@ -57,8 +60,11 @@ for ( s in 1:N.samps ) {
 	}
 }
 which.RM.samps <- which( DAT.2$IID %in% RM.samps )
-DAT.3 <- DAT.2[ -which.RM.samps, ]
-## Remove subjects w/o all missing values for DRUG==1 timepoints
+if ( length(which.RM.samps)>0 ) {
+	DAT.3 <- DAT.2[ -which.RM.samps, ]
+}else{ DAT.3 <- DAT.2 }
+
+## Remove subjects w/ all missing values for DRUG==1 timepoints
 RM.samps <- c()
 for ( s in 1:N.samps ) {
 	samp <- Samps[s]
@@ -231,6 +237,11 @@ D.MN.6.perc[,"lCRP"] <- ( 10^(D.MN.2.post[,"lCRP"])-10^(D.MN.2.pre[,"lCRP"]) ) /
 
 ## Check-up
 length(which(is.na(D.MN.6.perc)))
+# par(mfrow=c(2,2))
+# plot( D.MN.2.post[,"CRP"], 10^D.MN.2.post[,"lCRP"] )
+# plot( D.MN.2.pre[,"CRP"], 10^D.MN.2.pre[,"lCRP"] )
+# plot( D.MN.2.post[,"CRP"]-D.MN.2.pre[,"CRP"], 10^D.MN.2.post[,"lCRP"]-10^D.MN.2.pre[,"lCRP"] )
+# plot( (D.MN.2.post[,"CRP"]-D.MN.2.pre[,"CRP"])/D.MN.2.pre[,"CRP"], (10^D.MN.2.post[,"lCRP"]-10^D.MN.2.pre[,"lCRP"])/10^D.MN.2.pre[,"lCRP"] )
 # hist( D.MN.6.perc[,"lCRP"], breaks=seq(-1,40,.25) )
 # hist( 10^(D.MN.2.diff[,"lCRP"]) )
 # hist( 10^(D.MN.2.pre[,"lCRP"]) )
@@ -269,7 +280,7 @@ D.MN.7.B.wk[ which(is.na(D.MN.7.B.wk)) ] <- 0
 D.MN.8.res[ which(is.na(D.MN.8.res)) ] <- 0
 
 ###########################################################
-## MAKE SOME PLOTS ########################################
+## COMPILE DATA INTO TABLES ###############################
 ###########################################################
 
 ## Sanity Check
@@ -309,6 +320,10 @@ FRAME_NAMES <- paste( rep(DERIV_NAMES,rep(N.Pheno,N.Deriv)), rep(PHENO_NAMES,N.D
 colnames(PRE_FRAME) <- FRAME_NAMES
 rownames(PRE_FRAME) <- Samps
 
+###########################################################
+## MAKE SOME PLOTS ########################################
+###########################################################
+
 ## Heatmap of Correlation Amongst Phenotypes
 COLS.list <- c("black","slateblue3","steelblue2","springgreen2","gold2","chocolate2","firebrick1")
 COLS.list <- c("gold2","chocolate2","firebrick1","black","slateblue3","steelblue2","springgreen2")
@@ -327,6 +342,59 @@ heatmap.2( CORR.pp, main="Correlation: Derived Pre/Post Stats", col=COLS, trace=
 dev.off()
 
 ###########################################################
+## SUBSET OF DERIVED PHENOTYPES ##
+DIFF_FRAME.n28 <- DIFF_FRAME[ ,-grep("28",colnames(DIFF_FRAME)) ]
+POST_FRAME.n28 <- POST_FRAME[ ,-grep("28",colnames(POST_FRAME)) ]
+PRE_FRAME.n28 <- PRE_FRAME[ ,-grep("28",colnames(PRE_FRAME)) ]
+WHICH_DIFF <- grep("_MNa_|_MNcd_|_PRC_|_Bwk_|_VARwk_", colnames(DIFF_FRAME.n28) )
+WHICH_POST <- grep("_MNa_|_MNcd_|_PRC_|_Bwk_|_VARwk_", colnames(POST_FRAME.n28) )
+WHICH_PRE <- grep("_MNa_|_MNcd_|_PRC_|_Bwk_|_VARwk_", colnames(PRE_FRAME.n28) )
+DIFF_FRAME.sub <- DIFF_FRAME.n28[,WHICH_DIFF]
+POST_FRAME.sub <- POST_FRAME.n28[,WHICH_POST]
+PRE_FRAME.sub <- PRE_FRAME.n28[,WHICH_PRE]
+
+## Heatmap of Correlation Amongst Phenotypes
+COLS.list <- c("black","slateblue3","steelblue2","springgreen2","gold2","chocolate2","firebrick1")
+COLS.list <- c("gold2","chocolate2","firebrick1","black","slateblue3","steelblue2","springgreen2")
+COLS <- colorRampPalette(COLS.list)(100)
+COLM.COLS.list <- c("firebrick1","gold1","chartreuse1","dodgerblue1")
+ROW.COLS.list <- c("darkorchid1","chocolate2","cadetblue2","darkgoldenrod1","deeppink1")
+ ## Delta-Stats
+CORR.diff <- cor( DIFF_FRAME.sub, use="pairwise.complete.obs", method="spearman" )
+  # Side Colors
+COLM.COLS <- rep( COLM.COLS.list[1], ncol(CORR.diff) )
+COLM.COLS[grep("CRP",colnames(CORR.diff))] <- COLM.COLS.list[2]
+COLM.COLS[grep("SJC",colnames(CORR.diff))] <- COLM.COLS.list[3]
+COLM.COLS[grep("TJC",colnames(CORR.diff))] <- COLM.COLS.list[4]
+ROW.COLS <- rep( ROW.COLS.list[1], ncol(CORR.diff) )
+ROW.COLS[grep("MNcd",colnames(CORR.diff))] <- ROW.COLS.list[2]
+ROW.COLS[grep("PRC",colnames(CORR.diff))] <- ROW.COLS.list[3]
+ROW.COLS[grep("Bwk",colnames(CORR.diff))] <- ROW.COLS.list[4]
+ROW.COLS[grep("VARwk",colnames(CORR.diff))] <- ROW.COLS.list[5]
+BRKS <- seq( -1,1,length.out=101 )
+ # Create Plot
+png( paste(PathToSave,"/4_Derived_Diff_Heatmap.sub.png",sep=""), height=1600,width=1600,pointsize=32 )
+heatmap.2( CORR.diff, main="Correlation: Derived Delta Stats", col=COLS,ColSideColors=COLM.COLS,RowSideColors=ROW.COLS, trace="none", breaks=BRKS, scale="none", margins=c(7,7) )
+dev.off()
+ ## Pre/Post-Treatment Stats
+CORR.pp <- cor( data.frame(PRE_FRAME.sub,POST_FRAME.sub), use="pairwise.complete.obs", method="spearman" )
+  # Side Colors
+COLM.COLS <- rep( COLM.COLS.list[1], ncol(CORR.pp) )
+COLM.COLS[grep("CRP",colnames(CORR.pp))] <- COLM.COLS.list[2]
+COLM.COLS[grep("SJC",colnames(CORR.pp))] <- COLM.COLS.list[3]
+COLM.COLS[grep("TJC",colnames(CORR.pp))] <- COLM.COLS.list[4]
+ROW.COLS <- rep( ROW.COLS.list[1], ncol(CORR.pp) )
+ROW.COLS[grep("MNcd",colnames(CORR.pp))] <- ROW.COLS.list[2]
+ROW.COLS[grep("PRC",colnames(CORR.pp))] <- ROW.COLS.list[3]
+ROW.COLS[grep("Bwk",colnames(CORR.pp))] <- ROW.COLS.list[4]
+ROW.COLS[grep("VARwk",colnames(CORR.pp))] <- ROW.COLS.list[5]
+BRKS <- seq( -1,1,length.out=101 )
+ # Create PlotBRKS <- seq( -1,1,length.out=101 )
+png( paste(PathToSave,"/4_Derived_PrePost_Heatmap.sub.png",sep=""), height=1600,width=1600,pointsize=32 )
+heatmap.2( CORR.pp, main="Correlation: Derived Pre/Post Stats", col=COLS,ColSideColors=COLM.COLS,RowSideColors=ROW.COLS, trace="none", breaks=BRKS, scale="none", margins=c(7,7) )
+dev.off()
+
+###########################################################
 ## WRITE TABLES ###########################################
 ###########################################################
 
@@ -334,7 +402,7 @@ dev.off()
 FULL_TABLE <- data.frame( FID=rownames(DIFF_FRAME),IID=rownames(DIFF_FRAME), DIFF_FRAME, PRE_FRAME, POST_FRAME )
 
 ## Write Table
-PathToWrite <- gsub("20150310_Single","20150506_Derived",PathToWAG)
+PathToWrite <- gsub("20150520_Single",paste(DATE,"Derived",sep="_"),PathToWAG)
 write.table( FULL_TABLE, PathToWrite, sep="\t",col.names=T,row.names=F,quote=F)
 
 ## Write Phenotype/Covariate List
@@ -352,7 +420,7 @@ COV_NAMES.write[ grep("DEL",COV_NAMES.write) ] <- ""
 PHENO_COV_LIST <- data.frame( PHENO_NAMES.write, COV_NAMES.write )
 
 ## Write Pheno/Cov Table
-PathToWrite <- gsub("20150310_Single_Pheno","20150506_PhenoCov",PathToWAG)
+PathToWrite <- gsub("20150520_Single_Pheno",paste(DATE,"PhenoCov",sep="_"),PathToWAG)
 write.table( PHENO_COV_LIST, PathToWrite, sep="\t",row.names=F,col.names=F,quote=F )
 
 # ## Test Correlation b/n Initial Values & Delta-Values
@@ -377,20 +445,6 @@ write.table( PHENO_COV_LIST, PathToWrite, sep="\t",row.names=F,col.names=F,quote
 ###########################################################
 ## END OF DOC #############################################
 ###########################################################
-
-
-
-# for ( col in 1:ncol(D.MN.1.diff) ) {
-# 	par(ask=T)
-# 	pairs( data.frame( D.MN.1.diff[,col],D.MN.2.diff[,col],D.MN.3.diff[,col],D.MN.4.stat[,col],D.MN.5.B[,col]) )
-# }
-
-
-# pairs( D.MN.4.stat )
-
-
-
-
 
 
 

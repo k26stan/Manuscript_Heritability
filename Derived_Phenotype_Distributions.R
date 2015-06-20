@@ -12,20 +12,27 @@ library( lmtest )
 ###########################################################
 
 ## Set Date
-DATE <- "20150313"
+DATE <- gsub("-","",Sys.Date())
 
 ## Set Paths to Data and to Save
-PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
-PathToRep <- "/Users/kstandis/Data/Burn/Data/Phenos/Time_Series/20150226_Resp_v_Time.txt"
-PathToWAG <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20150310_Single_Pheno_Table.txt"
-PathToDER <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20150313_Derived_Pheno_Table.txt"
+# PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
+# PathToRep <- "/Users/kstandis/Data/Burn/Data/Phenos/Time_Series/20150226_Resp_v_Time.txt"
+# PathToWAG <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20150310_Single_Pheno_Table.txt"
+PathToDER.313 <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20150313_Derived_Pheno_Table.txt"
+PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20150520_Full_Table.txt"
+PathToRep <- "/Users/kstandis/Data/Burn/Data/Phenos/Time_Series/20150530_Resp_v_Time.txt"
+PathToWAG <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20150520_Single_Pheno_Table.txt"
+PathToDER <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20150619_Derived_Pheno_Table.txt"
 PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,sep="")
+dir.create( PathToSave )
 
 ## Load Real Data
 FT <- read.table( PathToFT, sep="\t",header=T )
 RP <- read.table( PathToRep, sep="\t",header=T )
 WAG <- read.table( PathToWAG, sep="\t",header=T )
 DER <- read.table( PathToDER, sep="\t",header=T )
+DER.313 <- read.table( PathToDER.313, sep="\t",header=T )
+# DER <- DER.313
 
 MG <- merge( FT, DER, by.x="ID_2",by.y="FID" )
 ###########################################################
@@ -62,21 +69,30 @@ N.samps <- length( Samps )
 ## Distributions: Delta
 
 ## Create Tables of Delta-Values
-DEL_CATS <- c("MNw","MNwo","MNa","MNcd","Bdr","PRC","Bwk","VARdr","VARwk")
+# DEL_CATS <- c("MNw","MNwo","MNa","MNcd","Bdr","PRC","Bwk","VARdr","VARwk")
+DEL_CATS <- c("MNa","MNcd","PRC","Bwk","VARwk")
 DEL <- list()
-DEL$DAS <- data.frame( MG[, colnames(DER)[grep("DEL.*DAS",colnames(DER))] ] )
-DEL$lCRP <- data.frame( MG[, colnames(DER)[grep("DEL.*CRP",colnames(DER))] ] )
-DEL$rSJC <- data.frame( MG[, colnames(DER)[setdiff( grep("DEL.*SJC",colnames(DER)),grep("28",colnames(DER)) ) ] ] )
-DEL$rTJC <- data.frame( MG[, colnames(DER)[setdiff( grep("DEL.*TJC",colnames(DER)),grep("28",colnames(DER)) ) ] ] )
+DEL$DAS <- data.frame( MG[, paste("DEL",DEL_CATS,"DAS",sep="_") ] ) # data.frame( MG[, colnames(DER)[grep("DEL.*DAS",colnames(DER))] ] )
+DEL$lCRP <- data.frame( MG[, paste("DEL",DEL_CATS,"lCRP",sep="_") ] )
+DEL$rSJC <- data.frame( MG[, paste("DEL",DEL_CATS,"rSJC",sep="_") ] )
+DEL$rTJC <- data.frame( MG[, paste("DEL",DEL_CATS,"rTJC",sep="_") ] )
+# DEL$lCRP <- data.frame( MG[, colnames(DER)[grep("DEL.*CRP",colnames(DER))] ] )
+# DEL$rSJC <- data.frame( MG[, colnames(DER)[setdiff( grep("DEL.*SJC",colnames(DER)),grep("28",colnames(DER)) ) ] ] )
+# DEL$rTJC <- data.frame( MG[, colnames(DER)[setdiff( grep("DEL.*TJC",colnames(DER)),grep("28",colnames(DER)) ) ] ] )
 for ( i in 1:length(DEL) ) { colnames(DEL[[i]]) <- DEL_CATS }
 
 ## Create Tables of Post-Treatment Values
 POST_CATS <- c("MNw","MNwo","MNa","Bdr")
 POST <- list()
-POST$DAS <- data.frame( MG[, colnames(DER)[grep("POST.*DAS",colnames(DER))] ] )
-POST$lCRP <- data.frame( MG[, colnames(DER)[grep("POST.*CRP",colnames(DER))] ] )
-POST$rSJC <- data.frame( MG[, colnames(DER)[setdiff( grep("POST.*SJC",colnames(DER)),grep("28",colnames(DER)) ) ] ] )
-POST$rTJC <- data.frame( MG[, colnames(DER)[setdiff( grep("POST.*TJC",colnames(DER)),grep("28",colnames(DER)) ) ] ] )
+POST$DAS <- data.frame( MG[, paste("POST",POST_CATS,"DAS",sep="_") ] ) # data.frame( MG[, colnames(DER)[grep("POST.*DAS",colnames(DER))] ] )
+POST$lCRP <- data.frame( MG[, paste("POST",POST_CATS,"lCRP",sep="_") ] )
+POST$rSJC <- data.frame( MG[, paste("POST",POST_CATS,"rSJC",sep="_") ] )
+POST$rTJC <- data.frame( MG[, paste("POST",POST_CATS,"rTJC",sep="_") ] )
+# POST <- list()
+# POST$DAS <- data.frame( MG[, colnames(DER)[grep("POST.*DAS",colnames(DER))] ] )
+# POST$lCRP <- data.frame( MG[, colnames(DER)[grep("POST.*CRP",colnames(DER))] ] )
+# POST$rSJC <- data.frame( MG[, colnames(DER)[setdiff( grep("POST.*SJC",colnames(DER)),grep("28",colnames(DER)) ) ] ] )
+# POST$rTJC <- data.frame( MG[, colnames(DER)[setdiff( grep("POST.*TJC",colnames(DER)),grep("28",colnames(DER)) ) ] ] )
 for ( i in 1:length(POST) ) { colnames(POST[[i]]) <- POST_CATS }
 
 ###########################################################
@@ -86,7 +102,8 @@ for ( i in 1:length(POST) ) { colnames(POST[[i]]) <- POST_CATS }
 WRITE_PHENO_TAB <- array( ,c(0,2) )
 
 ## Categories of Pheno using Pre- as Covariate
-RES_CATS <- c("MNw","MNwo","MNa","Bdr")
+# RES_CATS <- c("MNw","MNwo","MNa","Bdr")
+RES_CATS <- "MNa"
 
 ## Calculate Residuals vs Initial Values
 RES <- DEL
@@ -107,7 +124,8 @@ for ( p in 1:length(RES) ) {
 		BP.test[c,p] <- BP
 		WRITE_PHENO_TAB <- rbind( WRITE_PHENO_TAB, c( DEL_COLNAME.w, PRE_COLNAME ) )
 	}
-	RES[[p]] <- RES[[p]][, RES_CATS] # grep( paste(RES_CATS,collapse="|"), colnames(RES$DAS) ) ]
+	RES[[p]] <- data.frame( RES[[p]][, RES_CATS] ) # grep( paste(RES_CATS,collapse="|"), colnames(RES$DAS) ) ]
+	colnames(RES[[p]]) <- RES_CATS
 }
 
 ###########################################################
