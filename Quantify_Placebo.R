@@ -9,12 +9,13 @@ library( nlme )
 ###########################################################
 
 ## Set Date
-DATE <- "20150304"
+DATE <- gsub("-","",Sys.Date())
 
 ## Set Paths to Data and to Save
 PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
 PathToRep <- "/Users/kstandis/Data/Burn/Data/Phenos/Time_Series/20150226_Resp_v_Time.txt"
-PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Writing/Resp_Herit/Plots/",DATE,sep="")
+PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,"_Plac/",sep="")
+dir.create( PathToSave )
 
 ## Load Real Data
 FT <- read.table( PathToFT, sep="\t",header=T )
@@ -41,7 +42,8 @@ RP <- read.table( PathToRep, sep="\t",header=T )
  # DAS/lCRP/rSJC/rTJC/rSJC28/rTJC28
 PH <- data.frame( lCRP=log10(RP$CRP), rSJC=sqrt(RP$SJC), rTJC=sqrt(RP$TJC), rSJC28=sqrt(RP$SJC28), rTJC28=sqrt(RP$TJC28) )
 DAT.1 <- data.frame( RP, PH )
-PH_COLS <- c(16,21:25)
+WHICH_PHENOS <- c("DAS","lCRP","rSJC","rTJC")
+PH_COLS <- which( colnames(DAT.1) %in% WHICH_PHENOS )# c(16,21:25)
 names(PH_COLS) <- colnames(DAT.1)[PH_COLS]
 
 ## Remove timepoints w/ DRUG==1
@@ -67,7 +69,7 @@ for ( c in 1:length(PH_COLS) ) {
 }
 LM <- list( MODS, COEFS, PS )
 names(LM) <- c("Mods","Coefs","Ps")
-lapply( COEFS, function(x) x[2,1]/x[1,1] )
+unlist(lapply( COEFS, function(x) x[2,1]/x[1,1] ))
 
 ###########################################################
 ## Linear Mixed Models w/ PLAC as fixed effect & IID as Grouping Factor
@@ -93,7 +95,7 @@ for ( c in 1:length(PH_COLS) ) {
 }
 LME <- list( MODS, COEFS, PS )
 names(LME) <- c("Mods","Coefs","Ps")
-lapply( COEFS, function(x) x[2,1]/x[1,1] )
+unlist(lapply( COEFS, function(x) x[2,1]/x[1,1] ))
 
 ###########################################################
 ## QUANTIFY PLACEBO vs DRUG EFFECT ########################
@@ -120,7 +122,7 @@ for ( c in 1:length(PH_COLS) ) {
 }
 LM.DP <- list( MODS, COEFS, PS )
 names(LM.DP) <- c("Mods","Coefs","Ps")
-lapply( COEFS, function(x) x[3,1]/x[2,1] )
+unlist(lapply( COEFS, function(x) x[3,1]/x[2,1] ))
 
 ###########################################################
 ## Linear Mixed Models w/ PLAC as fixed effect & IID as Grouping Factor
@@ -147,7 +149,7 @@ for ( c in 1:length(PH_COLS) ) {
 }
 LME.DP <- list( MODS, COEFS, PS )
 names(LME.DP) <- c("Mods","Coefs","Ps")
-lapply( COEFS, function(x) x[3,1]/x[2,1] )
+unlist(lapply( COEFS, function(x) x[3,1]/x[2,1] ))
 
 ###########################################################
 ## COMPILE & PLOT RESULTS #################################
@@ -189,19 +191,19 @@ png( paste(PathToSave,"Plac_Effect_Beta.png",sep="/"), height=1200,width=1600, p
 par(mfrow=c(2,1))
 # B for PLAC beta & Intercept
 YLIM <- c( 1.5*min(Bs[1:2,]), 0 )
-barplot( Bs[1:2,], col=COLS, beside=T, ylim=YLIM, xlab="Phenotype",ylab="Beta",main="Placebo Effect (Beta Value)" )
+X_BARS <- barplot( Bs[1:2,], col=COLS, beside=T, ylim=YLIM, xlab="Phenotype",ylab="Beta",main="Placebo Effect (Beta Value)" )
 abline( h=seq(-5,0,.2), lty=2, col="grey50" )
 barplot( Bs[1:2,], col=COLS, beside=T, add=T )
-X.arrow <- rep( c(1.5,2.5), rep(6,2) ) + rep( seq(0,15,3),2 )
+X.arrow <- c(t( X_BARS )) # rep( c(1.5,2.5), rep(6,2) ) + rep( seq(0,15,3),2 )
 arrows( X.arrow, c(Confs[1,],Confs[3,]), X.arrow, c(Confs[2,],Confs[4,]), code=3,angle=90 )
 text( X.arrow, c(Confs[1,],Confs[3,])-.1, label=rep("**",length(X.arrow)) )
 # B for PLAC beta & DRUG beta
 COLS <- c("tomato2","slateblue3","chartreuse2","deepskyblue2")
 YLIM <- c( 1.5*min(Bs[3:6,]), 0 )
-barplot( Bs[3:6,], col=COLS, beside=T, ylim=YLIM, xlab="Phenotype",ylab="Beta",main="Placebo & Drug Effect (Beta Value)" )
+X_BARS <- barplot( Bs[3:6,], col=COLS, beside=T, ylim=YLIM, xlab="Phenotype",ylab="Beta",main="Placebo & Drug Effect (Beta Value)" )
 abline( h=seq(-5,0,.5), lty=2, col="grey50" )
 barplot( Bs[3:6,], col=COLS, beside=T, ylim=YLIM, add=T )
-X.arrow <- rep( c(1.5,2.5,3.5,4.5), rep(6,4) ) + rep( seq(0,25,5),4 )
+X.arrow <- c(t( X_BARS ))
 arrows( X.arrow, c(Confs[5,],Confs[7,],Confs[9,],Confs[11,]), X.arrow, c(Confs[6,],Confs[8,],Confs[10,],Confs[12,]), code=3,angle=90 )
 legend( "bottomright", fill=COLS, legend=c("LR: Plac","LMM: Plac","LR: Drug","LMM: Drug"), ncol=2 )
 text( X.arrow, c(Confs[5,],Confs[7,],Confs[9,],Confs[11,])-.2, label=rep("**",length(X.arrow)) )
