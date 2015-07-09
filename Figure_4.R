@@ -49,7 +49,7 @@ for ( p in 1:length(WHICH_PHENOS) ) {
 	pheno <- WHICH_PHENOS[p]
 	RANKS[[pheno]] <- apply( SING[,intersect(grep("DEL",colnames(SING)),grep(pheno,colnames(SING)))], 2, rank )
 	rownames(RANKS[[pheno]]) <- SING$IID
-}
+} # Rank 1 is MOST improved
 
 ## Sort by 4WAG Measurement
 N <- nrow(RANKS[[1]])
