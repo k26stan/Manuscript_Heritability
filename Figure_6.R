@@ -3,10 +3,6 @@
 ## Kristopher Standish ##
 
 ## Gameplan
- # Show discordance b/n ranks of patients at different timepoints
- # Show correlations b/n phenotypes
- # Show variance around mean/fit (after treatment?)
- # SIMULATIONS???
 
 library( gplots )
 
