@@ -67,12 +67,13 @@ for ( c in 1:length(PH_COLS) ) {
 COEFS <- matrix( unlist(lapply( MODS, function(x) summary(x)$coefficients[,"Estimate"] )), byrow=T,ncol=3 )
 STERS <- matrix( unlist(lapply( MODS, function(x) summary(x)$coefficients[,"Std. Error"] )), byrow=T,ncol=3 )
 PS <- matrix( unlist(lapply( MODS, function(x) summary(x)$coefficients[,"Pr(>|t|)"] )), byrow=T,ncol=3 )
-colnames(COEFS) <- colnames(STERS) <- colnames(PS) <- c("INT","DRUG","PLAC")
+# colnames(COEFS) <- colnames(STERS) <- colnames(PS) <- c("INT","DRUG","PLAC")
+colnames(COEFS) <- colnames(STERS) <- colnames(PS) <- c("BL","GOL","PBO")
 rownames(COEFS) <- rownames(STERS) <- rownames(PS) <- names(MODS)
 
 ## Get Ratio of Placebo Effect to Intercept & Drug EFfect
-RAT.pi <- abs( COEFS[,"PLAC"] / COEFS[,"INT"] )
-RAT.pd <- abs( COEFS[,"PLAC"] / COEFS[,"DRUG"] )
+RAT.pi <- abs( COEFS[,"PBO"] / COEFS[,"BL"] )
+RAT.pd <- abs( COEFS[,"PBO"] / COEFS[,"GOL"] )
 RAT <- rbind( RAT.pi, RAT.pd )
 
 ## Significance
@@ -86,12 +87,12 @@ Stars[ which(PS<.001) ] <- "***"
 ###########################################################
 
 ## Open File to Write Figure to
-png( paste(PathToSave,"3_Full.png",sep="/"), height=1000,width=2000, pointsize=26 )
+png( paste(PathToSave,"3_Full.png",sep="/"), height=1000,width=2000, pointsize=32 )
 
 ## Set Plotting Parameters
-COLS <- c("tomato2","slateblue3","turquoise3")
+COLS <- c("chocolate2","slateblue3","turquoise3")
 par(mfrow=c(1,2)) # layout( matrix(c(1,2,3,4), 2, 2, byrow = TRUE), widths=c(3,2), heights=c(1,1) )
-
+par(mar=c(3,4,4,1))
 ## Coefs for Intercept, Drug, and Placebo
 YLIM <- extendrange( COEFS, f=.15 )
 X_BARS <- barplot( t(COEFS), col=COLS, beside=T, ylim=YLIM, ylab="Beta Estimate",main="Population Coefficient Estimates" )
@@ -102,9 +103,9 @@ X.arrow <- c(t( X_BARS )) # rep( c(1.5,2.5), rep(6,2) ) + rep( seq(0,15,3),2 )
 arrows( X.arrow, c(COEFS)+c(STERS), X.arrow, c(COEFS)-c(STERS), code=3,angle=90,length=0.1 )
  # Text
 text( X.arrow[9:12], (c(COEFS)-c(STERS)-.2)[9:12], label=c(Stars)[9:12] )
-text( X.arrow[9:12], .8, label=formatC(PS[9:12],format="e",digits=2), srt=90 )
+text( X.arrow[9:12], 1.1, label=formatC(PS[9:12],format="e",digits=2), srt=90 )
  # Legend
-legend( "topright", fill=COLS, legend=colnames(COEFS), bg="white" )
+legend( "topright", fill=COLS, legend=colnames(COEFS), bg="white",ncol=3 )
 
 ## Placebo Relative to Intercept & Drug
 YLIM <- c( 0, max(RAT) ) * c(1,1.2)
@@ -113,9 +114,9 @@ abline( h=seq(0,1,.1), lty=3,col="grey50",lwd=1 )
 barplot( RAT, col=COLS[1:2], beside=T, add=T )
  # Put actual % Values on Plot
 X.arrow <- c( X_BARS ) 
-text( X.arrow, c(RAT)+.03, label=round(c(RAT),3), srt=90 )
+text( X.arrow, c(RAT)+.04, label=round(c(RAT),3), srt=90 )
  # Legend
-legend( "topleft", fill=COLS[1:2], legend=paste("PLAC/",colnames(COEFS)[1:2],sep="") )
+legend( "topleft", fill=COLS[1:2], legend=paste("PBO/",colnames(COEFS)[1:2],sep=""),ncol=2 )
 
 dev.off()
 
