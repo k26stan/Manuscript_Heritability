@@ -5,7 +5,7 @@
 ## Gameplan
 
 library( gplots )
-
+library( xtable )
 ###########################################################
 ## LOAD DATA ##############################################
 ###########################################################
@@ -16,7 +16,8 @@ DATE <- gsub("-","",Sys.Date())
 ## Set Paths to Data and to Save
 PathToSing <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/Single/4-PERM_Compile.Rdata"
 PathToDer <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/Derived/4-PERM_Compile.Rdata"
-PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,"_GCTA",sep="")
+PathToResTabs <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/20160216_GCTA/TAB"
+PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,"_GCTAperm",sep="")
 dir.create( PathToSave )
 
 ## Load Data
@@ -24,6 +25,10 @@ load( PathToSing )
 SING <- COMPILE.full
 load( PathToDer )
 DER <- COMPILE.full
+
+## Load Table of GCTA Results
+RES.sing <- read.table( paste(PathToResTabs,".sing.txt",sep=""), sep="\t",header=T )
+RES.der <- read.table( paste(PathToResTabs,".der.txt",sep=""), sep="\t",header=T )
 
 ## Cohort Names
 Cohort_Name <- "(MAF>1% - SNP+IND)" # "Full Cohort (MAF>1, SNP+Indel)"
@@ -90,24 +95,27 @@ PLOT_PERM <- function(COMPILE, tag) {
 	COLS.leg <- data.frame( LABS=unlist(lapply(strsplit(names(P.dat.comp),"_"),function(x) x[3])), COLS )
 	COLS.leg <- COLS.leg[ which(!duplicated(COLS.leg$COLS)), ]
 	LIM <- c(0, max(4,max(-log10( c(P.dat.comp,P.perm.comp) ))) )
-	# png( paste(PathToSave,"/Perm_Pvals.",tag,".png",sep=""), width=1200,height=1200, pointsize=30 )
+	 # Create Plot
 	plot( 0,0, type="n", xlim=LIM,ylim=LIM, xlab="GCTA: -log10(p)",ylab="Permuted: -log10(p)", main="Permuted vs GCTA P-Values" )
 	abline( h=seq(0,LIM[2]+1,1),lty=2,col="grey50") ; abline( v=seq(0,LIM[2]+1,1),lty=2,col="grey50")
 	abline( 0,1, lty=1,col="black",lwd=2 )
 	abline( h=-log10(.05), lty=2,col="magenta2",lwd=3 )
 	abline( v=-log10(.05), lty=2,col="magenta2",lwd=3 )
 	abline( h=-log10(1/(1+Num_Perms)), lty=2,col="chocolate2",lwd=3 )
+	 # Populate w/ Data
 	points( -log10(P.dat.comp), -log10(P.perm.comp), col=COLS,pch=PCHS,cex=2, lwd=3 )
+	 # Create Legend
 	legend( "topleft", legend=PCHS.leg$LABS[order(PCHS.leg$PCHS)], pch=PCHS.leg$PCHS[order(PCHS.leg$PCHS)], col="black", cex=1.2, pt.lwd=3,pt.cex=2 )
 	legend( "bottomright", legend=COLS.leg$LABS[order(COLS.leg$COLS)], col=as.character(COLS.leg$COLS[order(COLS.leg$COLS)]), pch=20, cex=1.2, ncol=2 )
-	# dev.off()
 
+	## Return Data
+	COMP_OUT <- list( DAT=P.dat.comp, PERM=P.perm.comp )
+	return(COMP_OUT)
 }
 
 
-###################################################
-## MAKE PERMUTATION PLOTS #########################
-###################################################
+##########################################
+## MAKE PERMUTATION PLOTS ################
 
 ## Save Figures Together in 1 Plot
 png( paste(PathToSave,"/Perm_Pvals.Fig7.png",sep=""), width=2000,height=1000, pointsize=30 )
@@ -117,22 +125,47 @@ par(mfrow=c(1,2))
 PHENOS_ALL <- names(SING$MOD)
 WHICH_PHENOS <- Reduce( intersect, list(grep("DEL",PHENOS_ALL), grep("VARdr",PHENOS_ALL,invert=T), grep("JC28",PHENOS_ALL,invert=T)) )
 SING.2 <- lapply( SING, function(x) x[WHICH_PHENOS] )
-PLOT_PERM( SING.2, "sing" )
+OUT.sing <- PLOT_PERM( SING.2, "sing" )
 
 ## Plot Permutations for Derived Delta Stats
 PHENOS_ALL <- names(DER$MOD)
 WHICH_PHENOS <- Reduce( intersect, list(grep("DEL",PHENOS_ALL), grep("VARdr",PHENOS_ALL,invert=T), grep("JC28",PHENOS_ALL,invert=T)) )
 DER.2 <- lapply( DER, function(x) x[WHICH_PHENOS] )
-PLOT_PERM( DER.2, "der" )
+OUT.der <- PLOT_PERM( DER.2, "der" )
 
 dev.off()
 
 
+###################################################
+## COMPILE RESULTS TABLES #########################
+###################################################
 
+## Create Output Tables for Manuscript
+ # Single Time Point
+TAB.sing <- data.frame( RES.sing, P.perm=OUT.sing$PERM )
+ # Derived Phenotypes
+TAB.mn <- data.frame( RES.der, P.perm=OUT.der$PERM[grep("MNa",names(OUT.der$PERM))] )
+ # Single + Mean
+TAB.manu <- rbind( TAB.sing, TAB.mn )
+TAB.manu.meta <- t(sapply(strsplit( rownames(TAB.manu),"_" ),"[",2:3))
+TAB.manu <- data.frame( TAB.manu.meta[,2:1], TAB.manu )
+colnames(TAB.manu)[1:2] <- c("Phenotype","Time")
+PHENOS.uniq <- paste("_",as.character(unique(TAB.manu$Phenotype)),sep="")
+TAB.manu <- Reduce( rbind, lapply( PHENOS.uniq, function(x)rbind(TAB.sing[grep(x,rownames(TAB.sing)),],TAB.mn[grep(x,rownames(TAB.mn)),]) ) )
+TAB.manu.meta <- t(sapply(strsplit( rownames(TAB.manu),"_" ),"[",2:3))
+TAB.manu <- data.frame( TAB.manu.meta[,2:1], TAB.manu )
+colnames(TAB.manu)[1:2] <- c("Phenotype","Time")
 
-
-
-
+## Write Table
+TAB.manu.2 <- TAB.manu
+rownames(TAB.manu.2) <- NULL
+TAB.manu.2[,"Phenotype"] <- as.character(TAB.manu.2[,"Phenotype"])
+TAB.manu.2[which(duplicated(TAB.manu.2$Phenotype)),"Phenotype"] <- ""
+TAB.manu.2 <- cbind( TAB.manu.2, c("","*")[factor(TAB.manu.2$P<.05 & TAB.manu.2$P.perm<.05)] )
+colnames(TAB.manu.2)[ncol(TAB.manu.2)] <- ""
+# for ( col in 3:4 ) { TAB.manu.2[,col] <- round(TAB.manu.2[,col],2) }
+# for ( col in 5:6 ) { TAB.manu.2[,col] <- round(TAB.manu.2[,col],4) }
+print(xtable(TAB.manu.2,digits=c(0,1,1,2,2,4,4,1)), include.rownames=F )
 
 
 ###################################################

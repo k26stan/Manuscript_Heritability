@@ -85,25 +85,37 @@ PLOT_GCTA <- function(DATA, tag) {
 ## PLOT HERITABILITY ESTIMATES ####################
 ###################################################
 
+## Pull out Derived Mean Values to Table
+WHICH <- grep( "MNa", rownames(DER$VAR) )
+DER.mn <- lapply( DER[2:4], function(x) x[WHICH,] )
+ # And Alternate Phenos to Separate Table
+DER.alt <- lapply( DER[2:4], function(x) x[-WHICH,] )
+
 ## Plot Heritability Estimates
 png( paste(PathToSave,"/GCTA_Estimates.Fig6.png",sep=""), height=1200,width=2400, pointsize=36 )
 layout( matrix(c(1,2), 1, 2, byrow = TRUE), widths=c(11,4) )
  # Single Measure Data
 PLOT_GCTA( SING, "Single" )
  # Derived Means
-WHICH <- grep( "MNa", rownames(DER$VAR) )
- # Main
-DER.mn <- lapply( DER[2:4], function(x) x[WHICH,] )
 PLOT_GCTA( DER.mn, "Derived" )
 dev.off()
 
 ## Plot Alternate Phenotypes
 png( paste(PathToSave,"/GCTA_Estimates.Der.Alt.png",sep=""), height=1200,width=2400, pointsize=36 )
-DER.alt <- lapply( DER[2:4], function(x) x[-WHICH,] )
 PLOT_GCTA( DER.alt, "Derived.Alt" )
 dev.off()
 
+###################################################
+## PROVIDE RESULTS IN TABLE FORM ##################
+###################################################
 
+## Compile Output Tables
+TAB.sing.out <- data.frame( VgVp=SING$VAR[,"VgVp"], SE=SING$SE[,"VgVp"], P=SING$MOD[,"Pval"] )
+TAB.der.out <- data.frame( VgVp=DER.mn$VAR[,"VgVp"], SE=DER.mn$SE[,"VgVp"], P=DER.mn$MOD[,"Pval"] )
+
+## Write Output Tables
+write.table( TAB.sing.out, file=paste(PathToSave,"/TAB.sing.txt",sep=""),row.names=T,col.names=T,quote=F,sep="\t" )
+write.table( TAB.der.out, file=paste(PathToSave,"/TAB.der.txt",sep=""),row.names=T,col.names=T,quote=F,sep="\t" )
 
 
 

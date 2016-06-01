@@ -20,10 +20,12 @@ library( lmtest )
 DATE <- gsub("-","",Sys.Date())
 
 ## Set Paths to Data and to Save
-PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
-PathToRep <- "/Users/kstandis/Data/Burn/Data/Phenos/Time_Series/20150530_Resp_v_Time.txt"
-PathToSing <- "Data/Burn/Data/Phenos/Full_Tables/20150520_Single_Pheno_Table.txt"
-PathToDer <- "Data/Burn/Data/Phenos/Full_Tables/20150619_Derived_Pheno_Table.txt"
+# PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
+PathToFT <- "/Users/kstandis/Data/Janssen/Data/Pheno/Derived/20151015_Full_Table.txt"
+# PathToRep <- "/Users/kstandis/Data/Burn/Data/Phenos/Time_Series/20150530_Resp_v_Time.txt"
+PathToRep <- "/Users/kstandis/Data/Janssen/Data/Pheno/Derived/20160112_Resp_v_Time.txt"
+PathToSing <- "/Users/kstandis/Data/Janssen/Data/Pheno/Derived/20150520_Single_Pheno_Table.txt"
+PathToDer <- "/Users/kstandis/Data/Janssen/Data/Pheno/Derived/20150619_Derived_Pheno_Table.txt"
 PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,"_SingleMeas/",sep="")
 dir.create( PathToSave )
 
@@ -38,6 +40,7 @@ DER <- read.table( PathToDer, sep="\t",header=T )
 WHICH_PHENOS <- c("DAS","lCRP","rSJC","rTJC")
 COLS <- c("firebrick1","gold1","chartreuse1","dodgerblue1")
 COLS.4 <- gsub("1","4",COLS)
+COLS <- c("firebrick1","gold2","chartreuse1","dodgerblue1")
 
 ###########################################################
 ## PATIENT RANKS ##########################################
@@ -112,13 +115,20 @@ SDS <- matrix( unlist(lapply( MODS, function(x) aggregate( resid(x), by=list(ID=
 BINS <- c( .1, .05, .1, .1 )
 # png( paste(PathToSave,"4_A.png",sep="/"), height=500,width=2000, pointsize=36 )
 # par(mfrow=c(1,4))
-png( paste(PathToSave,"4_A.png",sep="/"), height=1600,width=1600, pointsize=36 )
+png( paste(PathToSave,"4_A.png",sep="/"), height=1600,width=1600, pointsize=38 )
 par(mfrow=c(2,2))
+par(mar=c(4,4,3,1))
 for ( i in 1:4 ) {
 	XLIM <- range( SDS[,i], na.rm=T ) * c(1,1.05)
 	BRKS <- seq( floor(XLIM[1]), XLIM[2]+BINS[i], BINS[i] )
-	hist( SDS[,i], col=COLS[i], xlab="St.Dev of Within Patient Residuals",ylab="# Patients",main=paste("Within Patient Noise -",WHICH_PHENOS[i]), breaks=BRKS,xlim=XLIM )
-	abline( v=mean(SDS[,i],na.rm=T), lty=2,col=COLS.4[i],lwd=4 )
+	TEMP <- hist( SDS[,i], breaks=BRKS, plot=F )
+	YLIM <- c(0,1.2*max(TEMP$counts))
+	TEMP <- hist( SDS[,i], col=COLS[i], xlab="St.Dev of Residuals",ylab="# Patients",main=paste("Within Patient Variation:",WHICH_PHENOS[i]), breaks=BRKS,xlim=XLIM,ylim=YLIM )
+	# abline( v=mean(SDS[,i],na.rm=T), lty=2,col=COLS.4[i],lwd=4 )
+	# abline( v=mean(SDS[,i],na.rm=T), lty=3,col=COLS.4[i],lwd=8 )
+	abline( v=median(SDS[,i],na.rm=T), lty=3,col="black",lwd=8 )
+	text( median(SDS[,i],na.rm=T),1.15*max(TEMP$counts),paste("Range =",paste(round(range(SDS[,i],na.rm=T),2),collapse=" - ")), pos=4 )
+	text( median(SDS[,i],na.rm=T),1.05*max(TEMP$counts),paste("Median =",round(median(SDS[,i],na.rm=T),2)), pos=4 )
 }
 dev.off()
 

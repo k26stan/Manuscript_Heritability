@@ -12,9 +12,11 @@ library( nlme )
 DATE <- gsub("-","",Sys.Date())
 
 ## Set Paths to Data and to Save
-PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
-PathToRep <- "/Users/kstandis/Data/Burn/Data/Phenos/Time_Series/20150226_Resp_v_Time.txt"
-PathToRep <- "/Users/kstandis/Data/Burn/Data/Phenos/Time_Series/20150530_Resp_v_Time.txt"
+# PathToFT <- "/Users/kstandis/Data/Burn/Data/Phenos/Full_Tables/20141229_Full_Table.txt"
+PathToFT <- "/Users/kstandis/Data/Janssen/Data/Pheno/Derived/20151015_Full_Table.txt"
+# PathToRep <- "/Users/kstandis/Data/Burn/Data/Phenos/Time_Series/20150226_Resp_v_Time.txt"
+# PathToRep <- "/Users/kstandis/Data/Burn/Data/Phenos/Time_Series/20150530_Resp_v_Time.txt"
+PathToRep <- "/Users/kstandis/Data/Janssen/Data/Pheno/Derived/20160112_Resp_v_Time.txt"
 PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,"_Plac/",sep="")
 dir.create( PathToSave )
 
@@ -95,21 +97,21 @@ par(mfrow=c(1,2)) # layout( matrix(c(1,2,3,4), 2, 2, byrow = TRUE), widths=c(3,2
 par(mar=c(3,4,4,1))
 ## Coefs for Intercept, Drug, and Placebo
 YLIM <- extendrange( COEFS, f=.15 )
-X_BARS <- barplot( t(COEFS), col=COLS, beside=T, ylim=YLIM, ylab="Beta Estimate",main="Population Coefficient Estimates" )
+X_BARS <- barplot( t(COEFS), col=COLS, beside=T, ylim=YLIM, ylab="Population Estimate",main="Population Coefficient Estimates" )
 abline( h=seq(floor(YLIM[1]),YLIM[2]+1,1), lty=3,col="grey50",lwd=1 )
 barplot( t(COEFS), col=COLS, beside=T, add=T )
  # Error Bars
 X.arrow <- c(t( X_BARS )) # rep( c(1.5,2.5), rep(6,2) ) + rep( seq(0,15,3),2 )
-arrows( X.arrow, c(COEFS)+c(STERS), X.arrow, c(COEFS)-c(STERS), code=3,angle=90,length=0.1 )
+arrows( X.arrow, c(COEFS)+c(STERS), X.arrow, c(COEFS)-c(STERS), code=3,angle=90,length=0.2,lwd=2 )
  # Text
 text( X.arrow[9:12], (c(COEFS)-c(STERS)-.2)[9:12], label=c(Stars)[9:12] )
-text( X.arrow[9:12], 1.1, label=formatC(PS[9:12],format="e",digits=2), srt=90 )
+text( X.arrow[9:12], 1.2, label=paste("p=",formatC(PS[9:12],format="e",digits=2),sep=""), srt=90 )
  # Legend
 legend( "topright", fill=COLS, legend=colnames(COEFS), bg="white",ncol=3 )
 
 ## Placebo Relative to Intercept & Drug
 YLIM <- c( 0, max(RAT) ) * c(1,1.2)
-X_BARS <- barplot( RAT, col=COLS[1:2], beside=T, ylim=YLIM, ylab="Placebo Effect Size / X",main="Proportional Placebo Effect Size" )
+X_BARS <- barplot( RAT, col=COLS[1:2], beside=T, ylim=YLIM, ylab="Placebo Effect Size Ratio",main="Proportional Placebo Effect Size" )
 abline( h=seq(0,1,.1), lty=3,col="grey50",lwd=1 )
 barplot( RAT, col=COLS[1:2], beside=T, add=T )
  # Put actual % Values on Plot
