@@ -14,9 +14,15 @@ library( gplots )
 DATE <- gsub("-","",Sys.Date())
 
 ## Set Paths to Data and to Save
-PathToSing <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/Single/GCTA_Estimates.ALL.Rdata"
-PathToDer <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/Derived/GCTA_Estimates.ALL.Rdata"
-PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,"_GCTA",sep="")
+ # PC4 Model
+PathToSing <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/PC4_Sing/GCTA_Estimates.ALL.Rdata"
+PathToDer <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/PC4_Der/GCTA_Estimates.ALL.Rdata"
+PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,"_GCTA_PC4",sep="")
+ # No PC Model
+PathToSing <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/PC0_Sing/GCTA_Estimates.ALL.Rdata"
+PathToDer <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/PC0_Der/GCTA_Estimates.ALL.Rdata"
+PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,"_GCTA_PC0",sep="")
+
 dir.create( PathToSave )
 
 ## Load Data
@@ -59,13 +65,17 @@ PLOT_GCTA <- function(DATA, tag) {
 	# PCHS[ grep("DEL",rownames(VAR)) ] <- 20
 
 	## Set Plot Parameters
+	if ( tag=="Single" ) { MAIN <- "Heritability Estimate: Single Measurements"
+	}else{ if ( tag=="Derived" ) { MAIN <- "Average Response"
+		}else{ MAIN <- "Alternate Phenotypes" } }
+	
 	YLIM <- c( min( 0,VAR[,"VgVp"]-SE[,"VgVp"], na.rm=T), max(1,max(VAR[,"VgVp"]+SE[,"VgVp"],na.rm=T)) )
 	YLIM <- c( -.3, 1.6 )
 	XLIM <- c( 0,nrow(VAR)+1 )
 	WHICH_SIG <- which( MOD[,"Pval"] < .05 )
 	## Open Plot
 	# png( paste(PathToSave,"/GCTA_Estimates.",tag,".png",sep=""), height=1200,width=800+40*length(PHENOS.2), pointsize=36 )
-	plot( 0,0,type="n", xlim=XLIM, ylim=YLIM+c(0,.4), main=paste("Heritability Estimate -",Cohort_Name), ylab="% Phenotypic Variance", xlab="Phenotype", yaxt="n", xaxt="n" )
+	plot( 0,0,type="n", xlim=XLIM, ylim=YLIM+c(0,.4), main=MAIN, ylab="% Phenotypic Variance", xlab="Phenotype", yaxt="n", xaxt="n" )
 	 # Vertical Grid Lines
 	abline( h=seq(-2,XLIM[2]+.4,.1), lty=2, col="grey50", lwd=1 )
 	abline( h=c(0,1), lty=1, col="black", lwd=1 )

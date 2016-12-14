@@ -14,10 +14,20 @@ library( xtable )
 DATE <- gsub("-","",Sys.Date())
 
 ## Set Paths to Data and to Save
-PathToSing <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/Single/4-PERM_Compile.Rdata"
-PathToDer <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/Derived/4-PERM_Compile.Rdata"
-PathToResTabs <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/20160216_GCTA/TAB"
-PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,"_GCTAperm",sep="")
+# PathToSing <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/Single/4-PERM_Compile.Rdata"
+# PathToDer <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/Derived/4-PERM_Compile.Rdata"
+# PathToResTabs <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/20160216_GCTA/TAB"
+ # PC4 Model
+PathToSing <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/PC4_Sing/4-PERM_Compile.Rdata"
+PathToDer <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/PC4_Der/4-PERM_Compile.Rdata"
+PathToResTabs <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/20160622_GCTA_PC4/TAB"
+PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,"_GCTAperm_PC4",sep="")
+ # No PC Model
+PathToSing <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/PC0_Sing/4-PERM_Compile.Rdata"
+PathToDer <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Data/GCTA_Results/PC0_Der/4-PERM_Compile.Rdata"
+PathToResTabs <- "/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/20160623_GCTA_PC0/TAB"
+PathToSave <- paste("/Users/kstandis/Dropbox/Schork/JNJ11/Manuscripts/Resp_Herit/Plots/",DATE,"_GCTAperm_PC0",sep="")
+
 dir.create( PathToSave )
 
 ## Load Data
@@ -65,7 +75,7 @@ PLOT_PERM <- function(COMPILE, tag) {
 		PCHS[ grep("WAG12",names(VAR)) ] <- 1
 		PCHS[ grep("WAG20",names(VAR)) ] <- 2
 		PCHS[ grep("WAG28",names(VAR)) ] <- 3
-		PCHS[ grep("FL",names(VAR)) ] <- 4	
+		PCHS[ grep("FL",names(VAR)) ] <- 4
 	}else{
 		PCHS <- numeric(length(VAR)) 
 		PCHS[ grep("MNa",names(VAR)) ] <- 0
@@ -85,7 +95,7 @@ PLOT_PERM <- function(COMPILE, tag) {
 	}
 
 	## Calculate Permuted P-Values
-	P.perm.comp <- unlist(lapply( MOD, function(x) (1+length(which( abs(x[-nrow(x),"LRT"]) > abs(x[nrow(x),"LRT"])) )) / (1+nrow(x)) ))
+	P.perm.comp <- unlist(lapply( MOD, function(x) (1+length(which( abs(x[-nrow(x),"LRT"]) > abs(x[nrow(x),"LRT"])) )) / (nrow(x)) ))
 	P.dat.comp <- unlist(lapply( MOD, function(x) x["True","Pval"] ))
 
 	## Plot Permuted vs Actual P-Values
@@ -165,7 +175,8 @@ TAB.manu.2 <- cbind( TAB.manu.2, c("","*")[factor(TAB.manu.2$P<.05 & TAB.manu.2$
 colnames(TAB.manu.2)[ncol(TAB.manu.2)] <- ""
 # for ( col in 3:4 ) { TAB.manu.2[,col] <- round(TAB.manu.2[,col],2) }
 # for ( col in 5:6 ) { TAB.manu.2[,col] <- round(TAB.manu.2[,col],4) }
-print(xtable(TAB.manu.2,digits=c(0,1,1,2,2,4,4,1)), include.rownames=F )
+write.table(TAB.manu.2, paste(PathToSave,"/TAB_PermResults.csv",sep=""), sep=",",row.names=F,col.names=T,quote=F )
+writeLines( print(xtable(TAB.manu.2,digits=c(0,1,1,2,2,4,4,1)), include.rownames=F ), paste(PathToSave,"/TAB_PermResults.LaTeX.txt",sep="") )
 
 
 ###################################################
